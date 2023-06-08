@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  voting-server:
+    restart: unless-stopped
+    networks:
+      - default
+      - reverse-proxy_common
+
+networks:
+  reverse-proxy_common:
+    external:
+      name: reverse-proxy_common

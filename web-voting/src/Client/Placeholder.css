@@ -1,0 +1,25 @@
+body {
+  background-color: #FFEEE8;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  align-items: center;
+  width: auto;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+}
+
+.text {
+  text-align: center;
+  width: 80vw;
+  color: #70002D;
+}
+
+.logo {
+  width: 250px;
+  height: 250px;
+}

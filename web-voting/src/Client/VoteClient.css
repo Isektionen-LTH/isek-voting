@@ -1,0 +1,79 @@
+body {
+    background-color: #FFEEE8;
+}
+
+.mainFrame {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    align-items: center;
+    width: auto;
+    left: 50%;
+    top: 20%;
+    transform: translate(-50%, -50%);
+}
+
+.text {
+    text-align: center;
+    width: 80vw;
+    color: #70002D;
+}
+.text2 {
+    text-align: center;
+    width: 80vw;
+    color: black;
+    font-size: 20px;
+}
+
+.logo {
+    width: 250px;
+    height: 250px;
+}
+
+.valkod {
+    color: #70002D;
+    position: fixed;
+    left: 10px !important;
+    bottom: 30px !important;
+}
+
+.textVoter {
+    margin-top: 60px;
+}
+
+.frameVoter {
+    background-color: white;
+    width: 400px;
+    height: 350px;
+    border-radius: 10px;
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 767px) {
+    .frameVoter {
+        top: 45%;
+        width: 90%;
+    }
+}
+
+.contentVoter {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.inputVoter {
+    margin-top: 30px !important;
+    /* add some space between the text fields */
+    width: 60% !important;
+}
+
+.buttonVoter {
+    margin-top: 25px !important;
+    width: 60%;
+    background-color: #70002D !important;
+}

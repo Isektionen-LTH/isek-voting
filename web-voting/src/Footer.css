@@ -1,0 +1,35 @@
+.footer {
+  background-color: #70002D;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+
+@media (max-width: 767px) {
+  .footer {
+    justify-content: center;
+  }
+}
+
+
+.textFooter {
+  text-align: center;
+  color: white;
+  place-items: center;
+  margin-left: 10px;
+  text-size-adjust: -10%;
+}
+
+@media (max-width: 767px) {
+  .textFooter {
+    font-size: 10px;
+    /* Adjust the font size as per your requirement */
+    text-align: center;
+    margin-left: 0px;
+  }
+}

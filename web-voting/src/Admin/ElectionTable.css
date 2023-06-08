@@ -1,0 +1,33 @@
+.tableButtonGrid {
+    margin-bottom: 10px !important;
+    margin-right: 10px !important;
+    background-color: #70002D !important;
+}
+
+.getResultsButton {
+    background-color: #70002D !important;
+
+    margin-left: 708px !important;
+    margin-bottom: 10px !important;
+}
+
+.updateServerButton {
+    background-color: #70002D !important;
+    margin-left: 486px !important;
+    margin-bottom: 10px !important;
+}
+
+.highlighted-row {
+    background-color: rgba(0, 189, 113, 0.2) !important;
+}
+
+.mainDiv {
+    height: 330px;
+    width: 98%;
+    margin-bottom: 90px;
+    margin-left: 1%;
+    margin-right: 1%;
+    bottom: 10px;
+    position: absolute;
+  }
+  

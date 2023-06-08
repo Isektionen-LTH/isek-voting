@@ -1,0 +1,7 @@
+voting-server/build/*
+voting-server/build/**/*
+voting-server/voting-server.tar
+.eslintcache
+web-voting/node_modules
+web-voting/build
+.DS_Store

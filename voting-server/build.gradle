@@ -1,0 +1,30 @@
+plugins {
+   id 'application'
+   id 'java'
+   id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+repositories {
+   mavenCentral()
+}
+dependencies {
+   implementation 'com.google.code.gson:gson:2.10.1'
+   implementation group: 'com.sparkjava', name: 'spark-core', version: '2.9.4'
+   implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+   implementation 'com.sun.mail:javax.mail:1.6.2'
+}
+application {
+   mainClassName = 'service.Main'
+}
+java {
+   sourceCompatibility = "17"
+   targetCompatibility = "17"
+}
+jar {
+   manifest {
+       attributes 'Main-Class': 'service.Main'
+   }
+   archiveBaseName.set('vote-server')
+}
+shadowJar {
+   archiveBaseName.set('vote')
+}

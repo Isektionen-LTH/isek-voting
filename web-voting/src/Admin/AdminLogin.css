@@ -1,0 +1,36 @@
+.textLogin {
+    margin-top: 60px;
+}
+
+.frameLogin {
+    background-color: white;
+    width: 400px;
+    height: 350px;
+    border-radius: 10px;
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+
+.inputLogin {
+    margin-top: 30px !important;
+    /* add some space between the text fields */
+    width: 60% !important;
+}
+
+.buttonLogin {
+    margin-top: 25px !important;
+    width: 60%;
+    background-color: #70002D !important;
+}
