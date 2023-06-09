@@ -60,6 +60,22 @@ function Voting(props) {
                 vote: personVotes,
             });
             castPersonVote(voteData);
+        } else if (event.target.value == 'alternative1'){
+            const voteData = JSON.stringify({
+                voterId: props.voterId,
+                electionPart: props.current.id.toString(),
+                voteType: 'Flerval',
+                vote: props.current.alternative1,
+            });
+            castMultipleVote(voteData);
+        } else if (event.target.value == 'alternative2'){
+            const voteData = JSON.stringify({
+                voterId: props.voterId,
+                electionPart: props.current.id.toString(),
+                voteType: 'Flerval',
+                vote: props.current.alternative2,
+            });
+            castMultipleVote(voteData);
         }
     }
 
@@ -112,6 +128,30 @@ function Voting(props) {
             });
     }
 
+    function castMultipleVote(voteData){
+        let url = host + '/cast-multiple-vote/' + props.voterId;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: voteData,
+        })
+            .then((response) => {
+                if (response.ok) {
+                    setHasVoted(true);
+                } else {
+                    alert('Din röst kunde inte hanteras. Dubbelkolla valkod och testa igen. Om problemet fortsätter, uppdatera sidan.');
+                    setHasVoted(false);
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+                alert('Något gick fel... Kontakta admin.');
+                setHasVoted(false);
+            });
+    }
+
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -144,6 +184,21 @@ function Voting(props) {
                     </Button>
                     <Button variant='contained' value='Nej' className='choiceButton' onClick={buttonClick}>
                         Nej
+                    </Button>
+                </div>
+            </div>
+        );
+    } else if (props.current.type === 'Flerval') {
+        console.log(props.current);
+        return (
+            <div className='main'>
+                <div className='centerDecision'>
+                    <h1 className='title'>{props.current.title}</h1>
+                    <Button variant='contained' value='alternative1' className='choiceButton2' onClick={buttonClick}>
+                        {props.current.alternative1}
+                    </Button>
+                    <Button variant='contained' value='alternative2' className='choiceButton2' onClick={buttonClick}>
+                        {props.current.alternative2}
                     </Button>
                 </div>
             </div>

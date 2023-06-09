@@ -483,6 +483,34 @@ public class Service {
     return gson.toJson("No voter with that id");
   }
 
+   /**
+   * Casts vote for "Flerval" election.
+   * 
+   * @param req    The request object.
+   * @param res    The response object.
+   * @param params voterId.
+   * @return success message.
+   */
+  public String castMultipleVote(Request req, Response res, String params) {
+    for (Voter v : election.voters) {
+      if (v.voterId.equals(params)) {
+        DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
+        for (ElectionPart p : election.electionParts) {
+          // If part matches id and the voter has not yet voted.
+          if (p.id == Integer.parseInt(vote.electionPart)) {
+            p.addMultipleVote(vote, election.voters.size());
+            res.status(200);
+            res.body("Vote has been cast");
+            return gson.toJson("Vote has been cast");
+          }
+        }
+      }
+    }
+    res.status(403);
+    res.body("No voter with that id");
+    return gson.toJson("No voter with that id");
+  }
+
   /**
    * Casts vote for person election.
    * 
@@ -651,6 +679,17 @@ public class Service {
       res.body("Voters removed");
       res.status(200);
       return gson.toJson("Voters removed");
+    } else {
+      res.status(403);
+      res.body("Invalid authentication");
+      return gson.toJson("Invalid authentication");
+    }
+  }
+
+  public String getAllVoters(Request req, Response res, String params) {
+    if (params.equals(password)) {
+      res.status(200);
+      return gson.toJson(election.voters);
     } else {
       res.status(403);
       res.body("Invalid authentication");

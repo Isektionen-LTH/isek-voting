@@ -59,7 +59,7 @@ export default function DataTable(props) {
                 console.log(error);
                 longPollingResults();
             });
-            // eslint-disable-next-line
+        // eslint-disable-next-line
     }, [password]);
 
     const handleOpenAddDialog = () => {
@@ -106,6 +106,14 @@ export default function DataTable(props) {
         } else if (field === 'candidates') {
             const candidatesArray = value.split(/,\s*/);
             setNewRow((prevRow) => ({ ...prevRow, [field]: candidatesArray }));
+        } else if (field === 'multipleCandidates1'){
+            let currentArray = newRow.candidates || []; 
+            currentArray[0] = value; 
+            setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
+        } else if (field === 'multipleCandidates2'){
+            let currentArray = newRow.candidates || []; 
+            currentArray[1] = value; 
+            setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
         } else {
             setNewRow((prevRow) => ({ ...prevRow, [field]: value }));
         }
@@ -247,6 +255,8 @@ export default function DataTable(props) {
                         >
                             <MenuItem value="Personval">Personval</MenuItem>
                             <MenuItem value="Ja/Nej">Ja/Nej</MenuItem>
+                            <MenuItem value="Flerval">Flerval</MenuItem>
+
                         </Select>
                         {selectedType === 'Personval' && (
                             <>
@@ -271,7 +281,28 @@ export default function DataTable(props) {
                                 />
                             </>
                         )}
-
+                        {selectedType === 'Flerval' && (
+                            <>
+                                <InputLabel htmlFor="alternative-1">Alternativ 1</InputLabel>
+                                <TextField
+                                    required
+                                    sx={{ marginBottom: '16px' }}
+                                    id="alternative-1"
+                                    fullWidth
+                                    value={newRow.alternative1 || ''}
+                                    onChange={(e) => {handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value)}}
+                                />
+                                <InputLabel htmlFor="alternative-2">Alternativ 2</InputLabel>
+                                <TextField
+                                    required
+                                    sx={{ marginBottom: '16px' }}
+                                    id="alternative-2"
+                                    fullWidth
+                                    value={newRow.alternative2 || ''}
+                                    onChange={(e) => {handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value)}}
+                                />
+                            </>
+                        )}
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleCloseAddDialog}>Avbryt</Button>

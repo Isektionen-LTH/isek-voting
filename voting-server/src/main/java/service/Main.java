@@ -69,6 +69,8 @@ public class Main {
 
         post("/cast-person-vote/:voterId", (req, res) -> s.castPersonVote(req, res, req.params(":voterId")));
 
+        post("/cast-multiple-vote/:voterId", (req, res) -> s.castMultipleVote(req, res, req.params(":voterId")));
+
         post("/elections/add-voter/:password", (req, res) -> s.addSingleVoter(req, res, req.params(":password")));
 
         post("/elections/remove-voter/:password", (req, res) -> s.removeSingleVoter(req, res, req.params(":password")));
@@ -85,6 +87,9 @@ public class Main {
         get("/long-polling-results/:password", (req, res) -> s.longPollingResults(req, res, req.params(":password"))); 
         
         get("/remove-all-voters/:password", (req, res) -> s.removeAllVoters(req, res, req.params(":password")));
+
+        get("/get-all-voters/:password", (req, res) -> s.getAllVoters(req, res, req.params(":password")));
+
 
     }
 }

@@ -1,7 +1,7 @@
 package service;
 
 /**
- * Wrapper class for DecisionVote (Yes/No). 
+ * Wrapper class for DecisionVote (Yes/No) or MultipleVote. 
  */
 public class DecisionVote {
     public String voterId; 

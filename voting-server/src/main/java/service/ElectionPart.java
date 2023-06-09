@@ -19,12 +19,15 @@ public class ElectionPart {
     public String type;
     public int winnercount;
     public String[] candidates;
+    public String alternative1;
+    public String alternative2;
     public String winner;
     public int votecount;
-    public int voterSize; 
+    public int voterSize;
     private String oldWinner;
     public String voteprogress;
     public HashMap<String, DecisionVote> decisionVotes = new HashMap<String, DecisionVote>();
+    public HashMap<String, DecisionVote> multipleVotes = new HashMap<String, DecisionVote>();
     public HashMap<String, IRVvote> personVotes = new HashMap<String, IRVvote>();
 
     /**
@@ -32,16 +35,26 @@ public class ElectionPart {
      * Checks if voter has already voted and in that case updates the vote.
      * 
      * @param vote      DecisionVote
-     * @param voterSize How many eligible votes. 
+     * @param voterSize How many eligible votes.
      */
     public void addDecisionVote(DecisionVote vote, int voterSize) {
         if (decisionVotes.containsKey(vote.voterId)) {
             decisionVotes.remove(vote.voterId);
         } else {
             votecount++;
-            this.voterSize = voterSize; 
+            this.voterSize = voterSize;
         }
         decisionVotes.put(vote.voterId, vote);
+    }
+
+    public void addMultipleVote(DecisionVote vote, int voterSize) {
+        if (multipleVotes.containsKey(vote.voterId)) {
+            multipleVotes.remove(vote.voterId);
+        } else {
+            votecount++;
+            this.voterSize = voterSize;
+        }
+        multipleVotes.put(vote.voterId, vote);
     }
 
     /**
@@ -56,7 +69,7 @@ public class ElectionPart {
             personVotes.remove(vote.voterId);
         } else {
             votecount++;
-            this.voterSize = voterSize; 
+            this.voterSize = voterSize;
         }
         personVotes.put(vote.voterId, vote);
     }
@@ -72,11 +85,13 @@ public class ElectionPart {
         DecimalFormat decimalFormat = new DecimalFormat("#0.0");
         String formattedResult = Double.isNaN(percentage) ? "0.0" : decimalFormat.format(percentage * 100);
         voteprogress = votecount + "/" + voterSize + " (" + formattedResult + "%)";
-        
-        if (decisionVotes.size() == 0) {
+
+        if (personVotes.size() != 0) {
             determinePersonWinner();
-        } else if (personVotes.size() == 0) {
+        } else if (decisionVotes.size() != 0){
             determineDecisionWinner();
+        } else if (multipleVotes.size() != 0){
+            determineMultipleWinner(); 
         }
     }
 
@@ -106,6 +121,35 @@ public class ElectionPart {
         } else {
             winner = "Oavgjort";
             return "Lika";
+        }
+    }
+
+    /**
+     * Determines winner in a "Flerval" election.
+     * 
+     * @return winner.
+     */
+    private String determineMultipleWinner(){
+        int alternative1Count = 0; 
+        int alternative2Count = 0; 
+
+        for (DecisionVote decisionVote : multipleVotes.values()){
+            if (decisionVote.vote.equals(alternative1)){
+                alternative1Count++; 
+            } else {
+                alternative2Count++; 
+            }
+        }
+
+        if (alternative1Count > alternative2Count){
+            winner = alternative1; 
+            return alternative1; 
+        } else  if (alternative2Count > alternative1Count){
+            winner = alternative2; 
+            return alternative2; 
+        } else {
+            winner = "Oavgjort"; 
+            return "Lika"; 
         }
     }
 
