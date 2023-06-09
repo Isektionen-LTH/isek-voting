@@ -17,7 +17,7 @@ const columns = [
 ];
 
 export default function DataTable(props) {
-    const host = "https://vote-server.isek.se";
+    const host = "http://localhost:8080";
 
     const [rows, setRows] = useState([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -59,6 +59,7 @@ export default function DataTable(props) {
                 console.log(error);
                 longPollingResults();
             });
+            // eslint-disable-next-line
     }, [password]);
 
     const handleOpenAddDialog = () => {

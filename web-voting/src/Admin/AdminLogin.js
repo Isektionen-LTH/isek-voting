@@ -11,7 +11,7 @@ function AdminLogin() {
 
     function handleSubmit(event) {
         event.preventDefault();
-        let url = 'https://vote-server.isek.se/validate-admin/' + fieldInput;
+        let url = 'http://localhost:8080/validate-admin/' + fieldInput;
         fetch(url)
             .then((response) => {
                 if (response.ok) {
@@ -39,7 +39,7 @@ function AdminLogin() {
                 <form onSubmit={handleSubmit}>
                     <div className='content'>
                         <h1 className='textLogin'>Admin</h1>
-                        <TextField required label="Password" variant="outlined" className='inputLogin' value={fieldInput} onChange={handleChange} error={isWrongPassword} helperText={isWrongPassword ? 'Wrong password' : ''}></TextField>
+                        <TextField required type="password" label="Lösenord" variant="outlined" className='inputLogin' value={fieldInput} onChange={handleChange} error={isWrongPassword} helperText={isWrongPassword ? 'Wrong password' : ''}></TextField>
                         <Button type='submit' variant="contained" className='buttonLogin' onSubmit={handleSubmit}>Logga in</Button>
                     </div>
                 </form>

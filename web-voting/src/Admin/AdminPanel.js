@@ -13,15 +13,16 @@ import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 
 function CreateElection(props) {
-    const host = "https://vote-server.isek.se";
+    const host = "http://localhost:8080";
 
     const [password, setPassword] = useState("");
-    const [csvData, setCsvData] = useState(null);
     const [electionRunning, setRunning] = useState();
     const [tableRows, setTableRows] = useState([]); // New state for table rows
     const [currentId, setCurrentId] = useState(); // Nuvarande delval (grönmarkerad)
+
     const [open, setOpen] = useState(false); //Success message
     const [snackText, setText] = useState("");
+    const [severity, setSeverity] = useState('success');
 
     const [addVoterDialogOpen, setAddVoterDialogOpen] = useState(false);
     const [newVoterId, setNewVoterId] = useState("");
@@ -63,7 +64,9 @@ function CreateElection(props) {
                 if (response.ok) {
                     return response.json();
                 } else {
-                    alert("Something wrong...");
+                    setSeverity("error");
+                    setText("Något gick fel, försök gärna igen.");
+                    setOpen(true);
                 }
             }).then((data) => {
                 if (data !== 0) {
@@ -74,14 +77,15 @@ function CreateElection(props) {
                 setCurrentId(data.id);
             })
             .catch((error) => {
-                alert("Something went wrong...");
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
             });
     }
 
     const handleFileUpload = async (file) => {
         const contents = await readFileAsText(file);
         const parsedData = parseCsvData(contents);
-        setCsvData(parsedData);
         updateVoters(parsedData); // Pass the parsed data to the updateVoters function
     };
 
@@ -138,7 +142,6 @@ function CreateElection(props) {
     };
 
     function updateCurrentId(id) {
-        setCurrentId(id);
         let url = host + "/set-current-part/" + password;
         fetch(url, {
             method: 'POST',
@@ -148,18 +151,31 @@ function CreateElection(props) {
             body: id
         }).then(response => {
             if (response.ok) {
-                setText("Aktiv omröstning ändrad till " + id);
+                if (id === 0) {
+                    setText("Omröstningen är avslutad");
+                } else {
+                    setText("Aktiv omröstning ändrad till " + id);
+                }
                 setOpen(true);
             } else {
                 alert("Server error. Try again");
             }
-        }).catch(error => alert("Something went wrong..."));
+        }).catch(error => {
+            setSeverity("error");
+            setText("Något gick fel, försök gärna igen.");
+            setOpen(true);
+        });
     }
 
 
     const startElection = (event) => {
         if (!electionRunning) {
-            updateCurrentId(1);
+            if (currentId === 0 || currentId === undefined) {
+                setCurrentId(1);
+                updateCurrentId(1);
+            } else {
+                updateCurrentId(currentId);
+            }
         } else {
             updateCurrentId(0);
         }
@@ -167,17 +183,25 @@ function CreateElection(props) {
     };
 
     function nextElection(event) {
+        if (currentId === undefined) {
+            setCurrentId(1);
+        }
         let id = currentId + 1;
-
         if (id > 0 && id <= tableRows.length) {
-            updateCurrentId(id);
+            setCurrentId(id);
+            if (electionRunning) {
+                updateCurrentId(id);
+            }
         }
     }
 
     function previousElection(event) {
         let id = currentId - 1;
         if (id > 0 && id <= tableRows.length) {
-            updateCurrentId(id);
+            setCurrentId(id);
+            if (electionRunning) {
+                updateCurrentId(id);
+            }
         }
     }
 
@@ -196,7 +220,11 @@ function CreateElection(props) {
             } else {
                 alert("Could not be handled by server. Try again.");
             }
-        }).catch(error => alert("Something went wrong..."));
+        }).catch(error => {
+            setSeverity("error");
+            setText("Något gick fel, försök gärna igen.");
+            setOpen(true);
+        });
     }
 
     function addVoter() {
@@ -219,7 +247,11 @@ function CreateElection(props) {
                 } else {
                     alert("Could not be handled by server. Try again.");
                 }
-            }).catch(error => alert("Something went wrong..."));
+            }).catch(error => {
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
+            });
             setNewVoterId("");
         }
     }
@@ -237,21 +269,34 @@ function CreateElection(props) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ "voterId": removeVoterId })
-            }).then(response => {
-                if (response.body === "Voter doesn't exist") {
-                    setText("Valkod " + removeVoterId + " finns inte på servern.");
+            })
+                .then(response => {
+                    if (response.ok) {
+                        response.json().then(data => {
+                            if (data === "Voter doesn't exist") {
+                                setSeverity("error");
+                                setText("Valkod \"" + removeVoterId + "\" finns inte på servern.");
+                                setOpen(true);
+                            } else {
+                                setSeverity("success");
+                                setText("Valkod borttagen från servern: " + removeVoterId);
+                                setOpen(true);
+                            }
+                        });
+                    } else {
+                        alert("Could not be handled by the server. Please try again.");
+                    }
+                })
+                .catch(error => {
+                    setSeverity("error");
+                    setText("Något gick fel, försök gärna igen.");
                     setOpen(true);
-                }
-                if (response.ok) {
-                    setText("Valkod borttagen från servern: " + removeVoterId);
-                    setOpen(true);
-                } else {
-                    alert("Could not be handled by server. Try again.");
-                }
-            }).catch(error => alert("Something went wrong..."));
+                });
+
             setRemoveVoterId("");
         }
     }
+
 
     function addPermanentIds() {
         cleanPermanentIds();
@@ -268,19 +313,26 @@ function CreateElection(props) {
                         body: JSON.stringify({ "voterId": permanentVoterIds[i] })
                     }).then(response => {
                         if (response.ok) {
+                            setSeverity("success");
+                            setText("Valkoder har uppdaterats på servern.");
+                            setOpen(true);
                         } else {
                             if (!response.body === "Voter already exists") {
                                 alert("Could not be handled by server. Try again.");
                             }
                         }
-                    }).catch(error => alert("Something went wrong..."));
-                    setText("Valkoder har uppdaterats på servern.");
-                    setOpen(true);
+                    }).catch(error => {
+                        setSeverity("error");
+                        setText("Något gick fel, försök gärna igen.");
+                        setOpen(true);
+                    });
                 }
             }
             setPermanentDialogOpen(false);
         } catch {
-            alert("Something went wrong.");
+            setSeverity("error");
+            setText("Något gick fel, försök gärna igen.");
+            setOpen(true);
         }
     }
 
@@ -306,14 +358,19 @@ function CreateElection(props) {
                     setSendAllRemailsDialogOpen(false);
                     return response.json();
                 } else {
-                    alert("Something wrong...");
+                    setSeverity("error");
+                    setText("Något gick fel, försök gärna igen.");
+                    setOpen(true);
                 }
             }).then((data) => {
+                setSeverity("success");
                 setText("Mejl som skickats: " + data);
                 setOpen(true);
             })
             .catch((error) => {
-                alert("Something went wrong...");
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
             })
             .finally(() => {
                 setShowLoading(false);
@@ -334,12 +391,17 @@ function CreateElection(props) {
         })
             .then(response => {
                 if (response.ok) {
+                    setSeverity("success");
                     setText("Mejlet har skickats.");
                     setOpen(true);
                     setSendSingleEmailDialogOpen(false);
                 }
             })
-            .catch(error => alert("Something went wrong..."))
+            .catch(error => {
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
+            })
             .finally(() => {
                 setShowLoading(false);
             });
@@ -359,6 +421,7 @@ function CreateElection(props) {
                 body: newPassword
             }).then(response => {
                 if (response.ok) {
+                    setSeverity("success");
                     setText("Lösenordet har ändrats.");
                     setOpen(true);
                     setResetPasswordDialogOpen(false);
@@ -368,7 +431,11 @@ function CreateElection(props) {
                     setNewPassword("");
                     setOldPassword("");
                 }
-            }).catch(error => alert("Something went wrong..."))
+            }).catch(error => {
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
+            })
                 .finally(() => {
                     setShowLoading(false);
                 });
@@ -387,6 +454,7 @@ function CreateElection(props) {
 
                 if (response.ok) {
                     setRemoveAllDialogOpen(false);
+                    setSeverity("success");
                     setText("Alla valkoder har tagits bort.");
                     setOpen(true);
                     return response.json();
@@ -395,7 +463,9 @@ function CreateElection(props) {
                 }
             }).then((data) => console.log(data))
             .catch((error) => {
-                alert("Something went wrong...");
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
             });
     }
 
@@ -506,8 +576,8 @@ function CreateElection(props) {
 
 
     return (
-        <div>
-         <meta name="viewport" content="width=1920"></meta>
+        <div className='App'>
+            <meta name="viewport" content="width=1920"></meta>
             <div>
                 {showLoading && (
                     <div className='loading-overlay'>
@@ -652,12 +722,12 @@ function CreateElection(props) {
                 </div>
                 {electionRunning === false && <Button variant="contained" className='startElection' onClick={startElection}>Starta röstning</Button>}
                 {electionRunning === true && <Button variant="contained" className='endElection' onClick={startElection}>Stoppa röstning</Button>}
-                {electionRunning === true && <h3>Välj aktiv omröstning:</h3>}
-                {electionRunning === true && <Button variant="contained" className='nextElection' onClick={nextElection}> Nästa omröstning</Button>}
-                {electionRunning === true && <Button variant="contained" className='previousElection' onClick={previousElection}>Tillbaka</Button>}
+                {<h3>Välj aktiv omröstning:</h3>}
+                {<Button variant="contained" className='nextElection' onClick={nextElection}> Nästa omröstning</Button>}
+                {<Button variant="contained" className='previousElection' onClick={previousElection}>Tillbaka</Button>}
 
                 <Snackbar open={open} autoHideDuration={5000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'left', }}>
-                    <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+                    <Alert onClose={handleClose} severity={severity} sx={{ width: '100%' }}>
                         {snackText}
                     </Alert>
                 </Snackbar>
@@ -665,7 +735,6 @@ function CreateElection(props) {
             </div>
             <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} password={password} />
         </div>
-
     );
 };
 

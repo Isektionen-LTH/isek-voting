@@ -12,7 +12,7 @@ function VoteClient(params) {
     const [voterId, setVoterId] = useState('');
     const [voterName, setVoterName] = useState('');
     const [isWrongId, setWrongId] = useState(false);
-    const host = "https://vote-server.isek.se";
+    const host = "http://localhost:8080";
 
 
     const longPolling = useCallback(() => {

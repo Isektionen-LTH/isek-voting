@@ -1,5 +1,6 @@
 package service;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,8 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import com.google.gson.Gson;
 
 /**
  * A class representing a part of election (omröstning/delval).
@@ -22,7 +21,8 @@ public class ElectionPart {
     public String[] candidates;
     public String winner;
     public int votecount;
-    private String oldWinner; 
+    public int voterSize; 
+    private String oldWinner;
     public String voteprogress;
     public HashMap<String, DecisionVote> decisionVotes = new HashMap<String, DecisionVote>();
     public HashMap<String, IRVvote> personVotes = new HashMap<String, IRVvote>();
@@ -32,14 +32,14 @@ public class ElectionPart {
      * Checks if voter has already voted and in that case updates the vote.
      * 
      * @param vote      DecisionVote
-     * @param voterSize How many have voted so far.
+     * @param voterSize How many eligible votes. 
      */
     public void addDecisionVote(DecisionVote vote, int voterSize) {
         if (decisionVotes.containsKey(vote.voterId)) {
             decisionVotes.remove(vote.voterId);
         } else {
             votecount++;
-            voteprogress = votecount + "/" + voterSize;
+            this.voterSize = voterSize; 
         }
         decisionVotes.put(vote.voterId, vote);
     }
@@ -56,7 +56,7 @@ public class ElectionPart {
             personVotes.remove(vote.voterId);
         } else {
             votecount++;
-            voteprogress = votecount + "/" + voterSize;
+            this.voterSize = voterSize; 
         }
         personVotes.put(vote.voterId, vote);
     }
@@ -67,14 +67,17 @@ public class ElectionPart {
      * @return The winner(s)
      */
     public void determineWinner() {
+        double percentage = (voterSize != 0) ? (double) votecount / voterSize : 0.0;
+
+        DecimalFormat decimalFormat = new DecimalFormat("#0.0");
+        String formattedResult = Double.isNaN(percentage) ? "0.0" : decimalFormat.format(percentage * 100);
+        voteprogress = votecount + "/" + voterSize + " (" + formattedResult + "%)";
+        
         if (decisionVotes.size() == 0) {
             determinePersonWinner();
         } else if (personVotes.size() == 0) {
             determineDecisionWinner();
-        } 
-        /* if (oldWinner == null){
-            oldWinner = winner;
-        } */
+        }
     }
 
     /**
@@ -277,5 +280,5 @@ public class ElectionPart {
             return false;
         }
     }
-    
+
 }

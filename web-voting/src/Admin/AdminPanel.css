@@ -1,3 +1,10 @@
+.App{
+    min-width: 1440px;
+    min-height: 820px;
+    overflow: auto;
+    position: relative;
+}
+
 .text {
     margin-top: 320px;
     color: #70002D
@@ -26,7 +33,7 @@
 
 .startElection {
     margin-top: 10px !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 0px !important;
     width: 45%;
     background-color: green !important;
 }
@@ -54,7 +61,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-}
+  }
 
 .optionButtons {
     background-color: #70002D !important;
