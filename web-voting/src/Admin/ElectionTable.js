@@ -1,7 +1,7 @@
 import * as React from 'react';
 import './ElectionTable.css';
 import { DataGrid } from '@mui/x-data-grid';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
