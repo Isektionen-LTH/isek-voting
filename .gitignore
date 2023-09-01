@@ -5,3 +5,4 @@ voting-server/voting-server.tar
 web-voting/node_modules
 web-voting/build
 .DS_Store
+.class
