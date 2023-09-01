@@ -3,6 +3,7 @@ package service;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,9 @@ public class ElectionPart {
     public int voterSize;
     private String oldWinner;
     public String voteprogress;
+    public String tieBreakerVote;
+    public String[] tieBreakerIRVvote;
+    public String tieBreakerId;
     public HashMap<String, DecisionVote> decisionVotes = new HashMap<String, DecisionVote>();
     public HashMap<String, DecisionVote> multipleVotes = new HashMap<String, DecisionVote>();
     public HashMap<String, IRVvote> personVotes = new HashMap<String, IRVvote>();
@@ -38,23 +42,36 @@ public class ElectionPart {
      * @param voterSize How many eligible votes.
      */
     public void addDecisionVote(DecisionVote vote, int voterSize) {
-        if (decisionVotes.containsKey(vote.voterId)) {
-            decisionVotes.remove(vote.voterId);
-        } else {
+        if (!decisionVotes.containsKey(vote.voterId)) {
             votecount++;
-            this.voterSize = voterSize;
         }
-        decisionVotes.put(vote.voterId, vote);
+
+        if (vote.voterId.equals(tieBreakerId)) {
+            tieBreakerVote = vote.vote;
+        } else {
+            decisionVotes.put(vote.voterId, vote);
+        }
+        this.voterSize = voterSize;
     }
 
+    /**
+     * Adds a MultipleVote to multipleVotes.
+     * Checks if voter has already voted and in that case updates the vote.
+     * 
+     * @param vote      DecisionVote
+     * @param voterSize How many eligible votes.
+     */
     public void addMultipleVote(DecisionVote vote, int voterSize) {
-        if (multipleVotes.containsKey(vote.voterId)) {
-            multipleVotes.remove(vote.voterId);
-        } else {
+        if (!multipleVotes.containsKey(vote.voterId)) {
             votecount++;
-            this.voterSize = voterSize;
         }
-        multipleVotes.put(vote.voterId, vote);
+
+        if (vote.voterId.equals(tieBreakerId)) {
+            tieBreakerVote = vote.vote;
+        } else {
+            multipleVotes.put(vote.voterId, vote);
+        }
+        this.voterSize = voterSize;
     }
 
     /**
@@ -65,13 +82,16 @@ public class ElectionPart {
      * @param voterSize How many have voted so far.
      */
     public void addPersonVote(IRVvote vote, int voterSize) {
-        if (personVotes.containsKey(vote.voterId)) {
-            personVotes.remove(vote.voterId);
-        } else {
+        if (!personVotes.containsKey(vote.voterId)) {
             votecount++;
-            this.voterSize = voterSize;
         }
-        personVotes.put(vote.voterId, vote);
+
+        if (vote.voterId.equals(tieBreakerId)) {
+            tieBreakerIRVvote = vote.vote;
+        } else {
+            personVotes.put(vote.voterId, vote);
+        }
+        this.voterSize = voterSize;
     }
 
     /**
@@ -88,10 +108,10 @@ public class ElectionPart {
 
         if (personVotes.size() != 0) {
             determinePersonWinner();
-        } else if (decisionVotes.size() != 0){
+        } else if (decisionVotes.size() != 0) {
             determineDecisionWinner();
-        } else if (multipleVotes.size() != 0){
-            determineMultipleWinner(); 
+        } else if (multipleVotes.size() != 0) {
+            determineMultipleWinner();
         }
     }
 
@@ -119,8 +139,13 @@ public class ElectionPart {
             winner = "Nej";
             return "Nej";
         } else {
-            winner = "Oavgjort";
-            return "Lika";
+            if (tieBreakerVote != null) {
+                winner = tieBreakerVote;
+                return tieBreakerVote;
+            } else {
+                winner = "Oavgjort";
+                return "Lika";
+            }
         }
     }
 
@@ -129,27 +154,32 @@ public class ElectionPart {
      * 
      * @return winner.
      */
-    private String determineMultipleWinner(){
-        int alternative1Count = 0; 
-        int alternative2Count = 0; 
+    private String determineMultipleWinner() {
+        int alternative1Count = 0;
+        int alternative2Count = 0;
 
-        for (DecisionVote decisionVote : multipleVotes.values()){
-            if (decisionVote.vote.equals(alternative1)){
-                alternative1Count++; 
+        for (DecisionVote decisionVote : multipleVotes.values()) {
+            if (decisionVote.vote.equals(alternative1)) {
+                alternative1Count++;
             } else {
-                alternative2Count++; 
+                alternative2Count++;
             }
         }
 
-        if (alternative1Count > alternative2Count){
-            winner = alternative1; 
-            return alternative1; 
-        } else  if (alternative2Count > alternative1Count){
-            winner = alternative2; 
-            return alternative2; 
+        if (alternative1Count > alternative2Count) {
+            winner = alternative1;
+            return alternative1;
+        } else if (alternative2Count > alternative1Count) {
+            winner = alternative2;
+            return alternative2;
         } else {
-            winner = "Oavgjort"; 
-            return "Lika"; 
+            if (tieBreakerVote != null) {
+                winner = tieBreakerVote;
+                return tieBreakerVote;
+            } else {
+                winner = "Oavgjort";
+                return "Lika";
+            }
         }
     }
 
@@ -199,6 +229,7 @@ public class ElectionPart {
                 String firstChoice = rankings.get(0);
                 firstRanks.put(firstChoice, firstRanks.getOrDefault(firstChoice, 0) + 1);
             }
+            System.out.println(firstRanks);
 
             // Set threshold
             int threshold = Math.round(allVotes.size() / 2);
@@ -206,7 +237,7 @@ public class ElectionPart {
             // Check for winner
             Iterator<Map.Entry<String, Integer>> iterator = firstRanks.entrySet().iterator();
             Boolean winnerFound = false;
-            while (iterator.hasNext()) {
+            while (iterator.hasNext() && !winnerFound) {
                 Map.Entry<String, Integer> entry = iterator.next();
                 if (entry.getValue() > threshold) {
                     winners.add(entry.getKey());
@@ -214,16 +245,7 @@ public class ElectionPart {
                     winnerFound = true;
 
                     // Redistribute votes
-                    Iterator<ArrayList<String>> votesIterator = allVotes.iterator();
-                    while (votesIterator.hasNext()) {
-                        ArrayList<String> ranking = votesIterator.next();
-                        if (ranking.contains(entry.getKey())) {
-                            ranking.remove(entry.getKey());
-                        }
-                        if (ranking.isEmpty()) {
-                            votesIterator.remove();
-                        }
-                    }
+                    redistributeVotes(entry.getKey(), allVotes);
                 }
             }
 
@@ -232,6 +254,14 @@ public class ElectionPart {
                 int minCount = Integer.MAX_VALUE;
                 ArrayList<String> candidatesWithLeastVotes = new ArrayList<>();
 
+                // Initializes minCount value:
+                for (Map.Entry<String, Integer> candidateSet : firstRanks.entrySet()) {
+                    if (candidateSet.getValue() <= minCount) {
+                        minCount = candidateSet.getValue();
+                    }
+                }
+
+                // Checks for several candidates with same least amount of votes.
                 for (Map.Entry<String, Integer> candidateSet : firstRanks.entrySet()) {
                     if (candidateSet.getValue() <= minCount) {
                         candidatesWithLeastVotes.add(candidateSet.getKey());
@@ -245,19 +275,34 @@ public class ElectionPart {
                     firstRanks.remove(candidatesWithLeastVotes.get(0));
 
                     // Redistribute votes
-                    Iterator<ArrayList<String>> votesIterator = allVotes.iterator();
-                    while (votesIterator.hasNext()) {
-                        ArrayList<String> ranking = votesIterator.next();
-                        if (ranking.contains(candidatesWithLeastVotes.get(0))) {
-                            ranking.remove(candidatesWithLeastVotes.get(0));
-                        }
-                        if (ranking.isEmpty()) {
-                            votesIterator.remove();
-                        }
-                    }
+                    redistributeVotes(candidatesWithLeastVotes.get(0), allVotes);
+
                 } else if (candidatesWithLeastVotes.size() > 1) {
                     if (winnercount - winners.size() == 1) { // One position left, show tie
-                        winners.add("Lika (" + String.join(", ", candidatesWithLeastVotes) + ")");
+
+                        // Check if tieBreakerIRVVote contains at least one in candidatesWithLeastVotes.
+                        boolean containsCandidate = false;
+                        if (tieBreakerIRVvote != null) {
+                            for (String candidate : candidatesWithLeastVotes) {
+                                for (String vote : tieBreakerIRVvote) {
+                                    if (candidate.equals(vote)) {
+                                        containsCandidate = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (containsCandidate) {
+                            for (String candidate : tieBreakerIRVvote) {
+                                if (candidatesWithLeastVotes.contains(candidate) && !winners.contains(candidate)) {
+                                    System.out.println(candidate);
+                                    winners.add(candidate);
+                                    break;
+                                }
+                            }
+                        } else {
+                            winners.add("Lika (" + String.join(", ", candidatesWithLeastVotes) + ")");
+                        }
                         allVotes.clear(); // Stop while loop next iteration!
                     } else {
                         // TIE! Tiebreaker is used. The candidate with least original first vote choices
@@ -275,6 +320,8 @@ public class ElectionPart {
 
                         // Least is removed.
                         if (atLeastOneIsInOriginalVotes) {
+                            Collections.shuffle(candidatesWithLeastVotes); // Randomize the candidate list
+
                             for (String candidate : candidatesWithLeastVotes) {
                                 if (tieBreakerOriginalFirstRanks.containsKey(candidate) && tieBreakerOriginalFirstRanks
                                         .get(candidate) < leastAmountOfOriginalFirstVotes) {
@@ -287,16 +334,8 @@ public class ElectionPart {
                         }
 
                         // Redistribute votes for each candidate to remove:
-                        Iterator<ArrayList<String>> votesIterator = allVotes.iterator();
-                        while (votesIterator.hasNext()) {
-                            ArrayList<String> ranking = votesIterator.next();
-                            if (ranking.contains(candidateToRemove)) {
-                                ranking.remove(candidateToRemove);
-                            }
-                            if (ranking.isEmpty()) {
-                                votesIterator.remove();
-                            }
-                        }
+                        redistributeVotes(candidateToRemove, allVotes);
+
                     }
                 }
 
@@ -304,6 +343,21 @@ public class ElectionPart {
         }
         winner = String.join(", ", winners);
         return winner;
+    }
+
+    private ArrayList<ArrayList<String>> redistributeVotes(String candidateToRemove,
+            ArrayList<ArrayList<String>> allVotes) {
+        Iterator<ArrayList<String>> votesIterator = allVotes.iterator();
+        while (votesIterator.hasNext()) {
+            ArrayList<String> ranking = votesIterator.next();
+            if (ranking.contains(candidateToRemove)) {
+                ranking.remove(candidateToRemove);
+            }
+            if (ranking.isEmpty()) {
+                votesIterator.remove();
+            }
+        }
+        return allVotes;
     }
 
     private static <T> T getRandomElement(ArrayList<T> list) {

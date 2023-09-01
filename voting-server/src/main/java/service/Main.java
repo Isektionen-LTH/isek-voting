@@ -59,6 +59,8 @@ public class Main {
 
         post("/elections/update-electionparts/:password", (req, res) -> s.updateElectionParts(req, res, req.params(":password"))); 
 
+        post("/set-tie-breaker/:password", (req, res) -> s.setTieBreaker(req, res, req.params(":password"))); 
+
         //post("/elections/remove-electionpart/:password", (req, res) -> s.removeElectionPart(req, res, req.params(":password"))); 
         
         post("/set-current-part/:password", (req, res) -> s.setCurrentPart(req, res, req.params(":password"))); 
@@ -81,8 +83,7 @@ public class Main {
 
         post("/update-password/:password", (req, res) -> s.updatePassword(req, res, req.params(":password")));
 
-        //Long polling client - currentElectionPart
-        get("/long-polling-part", (req, res) -> s.longPollingPart(req, res)); 
+        get("/long-polling-part/:voterId", (req, res) -> s.longPollingPart(req, res, req.params(":voterId"))); 
 
         get("/long-polling-results/:password", (req, res) -> s.longPollingResults(req, res, req.params(":password"))); 
         

@@ -1,0 +1,45 @@
+Date : 2023-06-13 10:56:14
+Directory : /Users/victorsannicolo/WebbI - Vote App
+Total : 8 files,  47 codes, 3 comments, 5 blanks, all 55 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JavaScript |          2 |         25 |          1 |          1 |         27 |
+| Java       |          6 |         22 |          2 |          4 |         28 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                      | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                         |          8 |         47 |          3 |          5 |         55 |
+| voting-server                                                                             |          6 |         22 |          2 |          4 |         28 |
+| voting-server/bin                                                                         |          3 |         10 |          3 |          0 |         13 |
+| voting-server/bin/main                                                                    |          3 |         10 |          3 |          0 |         13 |
+| voting-server/bin/main/service                                                            |          3 |         10 |          3 |          0 |         13 |
+| voting-server/src                                                                         |          3 |         12 |         -1 |          4 |         15 |
+| voting-server/src/main                                                                    |          3 |         12 |         -1 |          4 |         15 |
+| voting-server/src/main/java                                                               |          3 |         12 |         -1 |          4 |         15 |
+| voting-server/src/main/java/service                                                       |          3 |         12 |         -1 |          4 |         15 |
+| web-voting                                                                                |          2 |         25 |          1 |          1 |         27 |
+| web-voting/src                                                                            |          2 |         25 |          1 |          1 |         27 |
+| web-voting/src/Admin                                                                      |          1 |          4 |          0 |          0 |          4 |
+| web-voting/src/Client                                                                     |          1 |         21 |          1 |          1 |         23 |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                  | language   | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /Users/victorsannicolo/WebbI - Vote App/voting-server/bin/main/service/Election.class     | Java       |          8 |          0 |          0 |          8 |
+| /Users/victorsannicolo/WebbI - Vote App/voting-server/bin/main/service/Main.class         | Java       |          0 |          3 |          0 |          3 |
+| /Users/victorsannicolo/WebbI - Vote App/voting-server/bin/main/service/Service.class      | Java       |          2 |          0 |          0 |          2 |
+| /Users/victorsannicolo/WebbI - Vote App/voting-server/src/main/java/service/Election.java | Java       |          8 |          0 |          4 |         12 |
+| /Users/victorsannicolo/WebbI - Vote App/voting-server/src/main/java/service/Main.java     | Java       |          0 |         -1 |          0 |         -1 |
+| /Users/victorsannicolo/WebbI - Vote App/voting-server/src/main/java/service/Service.java  | Java       |          4 |          0 |          0 |          4 |
+| /Users/victorsannicolo/WebbI - Vote App/web-voting/src/Admin/AdminPanel.js                | JavaScript |          4 |          0 |          0 |          4 |
+| /Users/victorsannicolo/WebbI - Vote App/web-voting/src/Client/VoteClient.js               | JavaScript |         21 |          1 |          1 |         23 |
+| Total                                                                                     |            |         47 |          3 |          5 |         55 |
++-------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

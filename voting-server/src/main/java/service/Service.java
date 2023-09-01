@@ -22,7 +22,7 @@ public class Service {
    * Constructor, creates an empty election object.
    */
   public Service() {
-    election = gson.fromJson("{electionParts: [], voters: []}", Election.class);
+    election = gson.fromJson("{electionParts: [], voters: [], tieBreakerId: 0}", Election.class);
     mail = new MailService();
   }
 
@@ -300,7 +300,7 @@ public class Service {
    * @param res The response object.
    * @return JSON representation of data.
    */
-  public String longPollingPart(Request req, Response res) {
+  public String longPollingPart(Request req, Response res, String params) {
     System.out.println("Connection established");
 
     Session session = req.session(true);
@@ -322,6 +322,10 @@ public class Service {
         res.status(200);
         res.body(null);
         return null;
+      } else if (!election.containsVoterWithId(params)) {
+        res.status(200);
+        res.body(gson.toJson("No voter with that id"));
+        return gson.toJson("No voter with that id");
       }
 
       try {
@@ -483,7 +487,7 @@ public class Service {
     return gson.toJson("No voter with that id");
   }
 
-   /**
+  /**
    * Casts vote for "Flerval" election.
    * 
    * @param req    The request object.
@@ -690,6 +694,30 @@ public class Service {
     if (params.equals(password)) {
       res.status(200);
       return gson.toJson(election.voters);
+    } else {
+      res.status(403);
+      res.body("Invalid authentication");
+      return gson.toJson("Invalid authentication");
+    }
+  }
+
+  public String setTieBreaker(Request req, Response res, String params) {
+    if (params.equals(password)) {
+      // Remove previous tiebreaker:
+      election.voters.removeIf(v -> v.voterId.equals(election.tieBreakerId));
+
+      // Add new
+      String s = "{\"name\":Tiebreaker,\"voterId\":" + req.body() + "}";
+      Voter newVoter = gson.fromJson(s, Voter.class);
+      election.voters.add(newVoter);
+      election.tieBreakerId = newVoter.voterId;
+      for (ElectionPart part : election.electionParts) {
+        part.tieBreakerId = req.body();
+      }
+      System.out.println(gson.toJson(election.voters));
+      res.status(200);
+      res.body("Tiebreaker changed.");
+      return "Tiebreaker changed.";
     } else {
       res.status(403);
       res.body("Invalid authentication");

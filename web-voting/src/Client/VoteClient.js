@@ -12,28 +12,32 @@ function VoteClient(params) {
     const [voterId, setVoterId] = useState('');
     const [voterName, setVoterName] = useState('');
     const [isWrongId, setWrongId] = useState(false);
+    const [isLoggedOut, setiIsLoggedOut] = useState(false);
     const host = "http://localhost:8080";
 
 
     const longPolling = useCallback(() => {
-        let url = host + '/long-polling-part';
+        let url = host + '/long-polling-part/' + voterId;
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
                 if (data === "Omröstning saknas") {
                     setCurrent(null);
+                    // eslint-disable-next-line
+                    longPolling();
+                } else if (data === 'No voter with that id') {
+                    setiIsLoggedOut(true); //Logged out
                 } else {
                     setCurrent(data);
+                    // eslint-disable-next-line
+                    longPolling();
                 }
-                // eslint-disable-next-line
-                longPolling();
             })
             .catch((error) => {
-                console.log(error);
                 setCurrent(null);
                 longPolling();
             });
-    }, []);
+    }, [voterId]);
 
     function getCurrentPart() {
         let url = host + '/get-current-part';
@@ -57,38 +61,50 @@ function VoteClient(params) {
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
-                if (data === "No voter with that id"){
+                if (data === "No voter with that id") {
                     setWrongId(true);
                 } else {
                     setVoterId(fieldInput);
-                    setVoterName(data); 
+                    setVoterName(data);
                     sessionStorage.setItem('voterId', fieldInput);
+                    setiIsLoggedOut(false);
                 }
             })
             .catch((error) => {
                 setWrongId(true);
-                console.log("Server error");
             });
     }
 
     useEffect(() => {
-        //Get from url, see index.js
-        if (params.id){ 
+        //Get params from url, see index.js
+        if (params.id) {
             setInput(params.id);
         }
         getCurrentPart();
-        longPolling();
+        if (voterId) {
+            longPolling();
+        }
         if (sessionStorage.getItem('voterId') !== null) {
             setInput(sessionStorage.getItem('voterId'));
         }
         // eslint-disable-next-line
-    }, []);
+    }, [voterId]);
 
     function noCurrentElection() {
         return (
             <div className='mainFrame'>
                 <h1 className='text'>Välkommen,<br></br>{voterName}</h1>
                 <p className='text2'>Just nu pågår det ingen omröstning.</p>
+                <img src={image} alt="ISEK" className='logo' />
+            </div>
+        );
+    }
+
+    function loggedOut() {
+        return (
+            <div className='mainFrame'>
+                <h1 className='text'>Valkod ej giltig<br></br></h1>
+                <p className='text2'>Din valkod är inte längre aktiv. Meddela styr om du är kvar på mötet.</p>
                 <img src={image} alt="ISEK" className='logo' />
             </div>
         );
@@ -104,7 +120,14 @@ function VoteClient(params) {
         setInput(event.target.value);
     }
 
-    if (voterId === '') {
+    if (isLoggedOut) {
+        return (
+            <div>
+                <p className='valkod'>Valkod: {voterId} ({voterName})</p>
+                {loggedOut()}
+            </div>
+        );
+    } else if (voterId === '') {
         return (
             <div className='frameVoter'>
                 <form onSubmit={handleSubmit}>

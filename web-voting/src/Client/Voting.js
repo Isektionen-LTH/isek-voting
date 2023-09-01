@@ -60,7 +60,7 @@ function Voting(props) {
                 vote: personVotes,
             });
             castPersonVote(voteData);
-        } else if (event.target.value == 'alternative1'){
+        } else if (event.target.value === 'alternative1'){
             const voteData = JSON.stringify({
                 voterId: props.voterId,
                 electionPart: props.current.id.toString(),
@@ -68,7 +68,7 @@ function Voting(props) {
                 vote: props.current.alternative1,
             });
             castMultipleVote(voteData);
-        } else if (event.target.value == 'alternative2'){
+        } else if (event.target.value === 'alternative2'){
             const voteData = JSON.stringify({
                 voterId: props.voterId,
                 electionPart: props.current.id.toString(),

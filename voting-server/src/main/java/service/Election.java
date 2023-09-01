@@ -8,4 +8,17 @@ import java.util.ArrayList;
 public class Election {
     public ElectionPart[] electionParts; 
     public ArrayList<Voter> voters; 
+    public String tieBreakerId; 
+
+    public boolean containsVoterWithId(String params) {
+        for (Voter voter : voters) {
+            if (voter.voterId.equals(params)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
+
+
+

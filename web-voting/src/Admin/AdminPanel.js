@@ -53,6 +53,9 @@ function CreateElection(props) {
     const [ShowAllVotersDialogOpen, setShowAllVotersDialogOpen] = useState(false);
     const [allVoters, setAllVoters] = useState([]);
 
+    const [tieDialogOpen, setTieDialogOpen] = useState(false);
+    const [tieBreaker, setTieBreaker] = useState(); 
+
     useEffect(() => {
         getCurrentPart();
         setPassword(props.password);
@@ -67,6 +70,7 @@ function CreateElection(props) {
         setRemoveVoterDialogOpen,
         setRemoveAllDialogOpen,
         setPermanentDialogOpen,
+        setTieDialogOpen,
         setSendAllRemailsDialogOpen,
         setSendSingleEmailDialogOpen,
         setResetPasswordDialogOpen,
@@ -145,7 +149,7 @@ function CreateElection(props) {
 
         //Add permanentVoterIds(styr) as well: 
         for (let i = 0; i < permanentVoterIds.length; i++) {
-            data.push({ "voterId": permanentVoterIds[i] });
+            data.push({ "name":"Styr", "voterId": permanentVoterIds[i] });
         }
         return JSON.stringify(data);
     };
@@ -169,8 +173,10 @@ function CreateElection(props) {
         }).then(response => {
             if (response.ok) {
                 if (id === 0) {
+                    setSeverity("success");
                     setText("Omröstningen är avslutad");
                 } else {
+                    setSeverity("success");
                     setText("Aktiv omröstning ändrad till " + id);
                 }
                 setOpen(true);
@@ -276,6 +282,10 @@ function CreateElection(props) {
     }
 
     function removeVoter(voterId) {
+        if (permanentVoterIds.includes(voterId)){
+            setPermanentVoterIds((prevIds) => prevIds.filter((id) => id !== voterId));
+            sessionStorage.setItem("styr", JSON.stringify(permanentVoterIds));
+        }
         return new Promise((resolve, reject) => {
             if (voterId) {
                 let url = host + "/elections/remove-voter/" + password;
@@ -299,6 +309,7 @@ function CreateElection(props) {
                                     setText("Valkod borttagen från servern: " + voterId);
                                     setOpen(true);
                                     resolve();
+                                    setRemoveVoterDialogOpen(false);
                                 }
                             });
                         } else {
@@ -333,7 +344,7 @@ function CreateElection(props) {
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ "voterId": permanentVoterIds[i] })
+                        body: JSON.stringify({ "name":"Styr", "voterId": permanentVoterIds[i] })
                     }).then(response => {
                         if (response.ok) {
                             setSeverity("success");
@@ -490,13 +501,11 @@ function CreateElection(props) {
     }
 
     function getAllVoters() {
-        console.log("NU");
         let url = host + '/get-all-voters/' + password;
         fetch(url)
             .then((response) => {
                 return response.json();
             }).then((data) => {
-                console.log(data);
                 setAllVoters(data);
                 setShowAllVotersDialogOpen(true);
             })
@@ -505,6 +514,30 @@ function CreateElection(props) {
                 setText("Något gick fel, försök gärna igen.");
                 setOpen(true);
             });
+    }
+
+    function setServerTieBreaker(){
+        let url = host + "/set-tie-breaker/" + password;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tieBreaker)
+            }).then(response => {
+                if (response.ok) {
+                    setSeverity('success');
+                    setText("Ordförandes valkod uppdaterad: " + tieBreaker);
+                    setOpen(true);
+                } else {
+                    alert("Could not be handled by server. Try again.");
+                }
+            }).catch(error => {
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
+            });
+            setTieDialogOpen(false);
     }
 
 
@@ -706,9 +739,10 @@ function CreateElection(props) {
             <Dialog open={permanentDialogOpen} onClose={() => setPermanentDialogOpen(false)}>
                 <DialogTitle>Valkoder styrelse</DialogTitle>
                 <DialogContent>
+                <div style={{width:'300px', marginBottom:'20px'}}>OBS: Lägg endast till valkoder här! För att ta bort, gör det i "Ta bort valkod" alt. "Alla valkoder"</div>
                     <TextField
                         style={{ marginTop: '10px' }}
-                        label="Valkoder (en per rad)"
+                        label="Lägg till valkoder (en per rad)"
                         multiline
                         rows={4}
                         value={permanentVoterIds.join("\n")}
@@ -719,6 +753,23 @@ function CreateElection(props) {
                 <DialogActions>
                     <Button onClick={() => setPermanentDialogOpen(false)}>Avbryt</Button>
                     <Button onClick={addPermanentIds}>Spara</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={tieDialogOpen} onClose={() => setTieDialogOpen(false)}>
+                <DialogTitle>Valkod mötesordförande</DialogTitle>
+                <DialogContent>
+                <div style={{width:'300px', marginBottom:'20px'}}>Ange den valkod som avgör resultat vid oavgjort</div>
+                    <TextField
+                        style={{ marginTop: '10px' }}
+                        label="Ange valkod"
+                        value={tieBreaker}
+                        onChange={(e) => setTieBreaker(e.target.value)}
+                        fullWidth
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setTieDialogOpen(false)}>Avbryt</Button>
+                    <Button onClick={setServerTieBreaker}>Spara</Button>
                 </DialogActions>
             </Dialog>
             <Dialog open={resetPasswordDialogOpen} onClose={() => setResetPasswordDialogOpen(false)}>
