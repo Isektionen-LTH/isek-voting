@@ -371,11 +371,14 @@ public class ElectionPart {
     }
 
     public boolean isWinnerChanged() {
-        if (oldWinner == null || !oldWinner.equals(winner)) {
-            oldWinner = winner;
-            return true;
+        if (winner == null){
+            oldWinner = winner; 
+            return false; 
+        } else if (oldWinner == null || !oldWinner.equals(winner)){
+            oldWinner = winner; 
+            return true; 
         } else {
-            return false;
+            return false; 
         }
     }
 

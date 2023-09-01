@@ -61,7 +61,7 @@ const Menu = (props) => {
             </ListItem>
             <ListItem key="tiebreaker" disablePadding>
               <ListItemButton onClick={() => { props.menuFunctions.setTieDialogOpen(true); handleMenuItemClick(); }}>
-                <ListItemText primary="Valkod ordförande" />
+                <ListItemText primary="Valkod utslagsröst" />
               </ListItemButton>
             </ListItem>
             <Divider style={{ background: 'white' }} />

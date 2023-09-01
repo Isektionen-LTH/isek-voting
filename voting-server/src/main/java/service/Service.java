@@ -301,7 +301,7 @@ public class Service {
    * @return JSON representation of data.
    */
   public String longPollingPart(Request req, Response res, String params) {
-    System.out.println("Connection established");
+    System.out.println("Voter connection established, " + Thread.activeCount() + "/1000");
 
     Session session = req.session(true);
     String lastElectionPart = session.attribute("lastElectionPart");
@@ -360,55 +360,53 @@ public class Service {
    */
   public String longPollingResults(Request req, Response res, String params) {
     if (params.equals(password)) {
-      // Perform long polling logic
-      System.out.println("Admin connected.");
       long startTime = System.currentTimeMillis();
       long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-      synchronized (election.electionParts) {
-        try {
-          // Wait for changes in votecount or timeout
-          while (true) {
+      System.out.println("Admin connected, " + Thread.activeCount());
+      try {
+        while (true) {
+          synchronized (election.electionParts) {
             determineWinners();
             boolean voteCountChanged = false;
+
             for (ElectionPart part : election.electionParts) {
               if (part.isWinnerChanged()) {
                 voteCountChanged = true;
                 break;
               }
             }
+
             if (voteCountChanged) {
               String json = gson.toJson(election.electionParts);
               res.type("application/json");
               res.status(200);
               res.body(json);
-              return json;
+              return json; // Return the JSON response and exit the function
             }
 
-            long elapsedTime = System.currentTimeMillis() - startTime;
-            long remainingTime = timeout - elapsedTime;
-            if (remainingTime <= 0) {
-              // Timeout reached, end the connection
-              System.out.println("Admin connection timed out.");
-              res.status(200);
-              res.body(null);
-              return null;
-            }
-
-            System.out.println("Admin check. Connections:" + Thread.activeCount() + "/1000");
-
-            try {
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
+            // Continue checking for changes even when voteCountChanged is false
+            // Sleep for a short interval to avoid high CPU usage
+            Thread.sleep(1000);
           }
-        } catch (Exception e) {
-          e.printStackTrace();
-          res.status(500);
-          res.body(null);
-          return null;
+
+          long elapsedTime = System.currentTimeMillis() - startTime;
+          long remainingTime = timeout - elapsedTime;
+
+          if (remainingTime <= 0) {
+            // Timeout reached, end the connection
+            System.out.println("Admin connection timed out.");
+            res.status(200);
+            res.body(null);
+            return null;
+          }
+
+          System.out.println("Admin check. Connections: " + Thread.activeCount() + "/1000");
         }
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        res.status(1000);
+        res.body(null);
+        return null;
       }
     } else {
       res.status(403);

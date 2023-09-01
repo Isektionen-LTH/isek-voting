@@ -38,30 +38,29 @@ export default function DataTable(props) {
         }
         if (!longPollingGoing && password) {
             setGoing(true);
+            // Start long polling when the component mounts
             longPollingResults();
         }
         // eslint-disable-next-line
-    }, [props.password, props.currentId, password]);
+    }, [props.password, password, longPollingGoing]);
 
-    const longPollingResults = useCallback(() => {
+    const longPollingResults = () => {
         let url = host + '/long-polling-results/' + password;
         fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data !== null) {
-                    setRows(data);
-                    props.updateParentRows(data);
-                }
-                // eslint-disable-next-line
-                longPollingResults();
-            })
-            .catch((error) => {
-                console.log(error);
-                longPollingResults();
-            });
-        // eslint-disable-next-line
-    }, [password]);
-
+          .then((response) => response.json())
+          .then((data) => {
+            if (data !== null) {
+              setRows(data);
+              props.updateParentRows(data);
+            }
+            longPollingResults(); 
+          })
+          .catch((error) => {
+            console.log(error);
+            longPollingResults();
+          });
+    };
+    
     const handleOpenAddDialog = () => {
         setIsAddDialogOpen(true);
     };

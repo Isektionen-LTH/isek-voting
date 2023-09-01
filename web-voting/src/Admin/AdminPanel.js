@@ -756,9 +756,9 @@ function CreateElection(props) {
                 </DialogActions>
             </Dialog>
             <Dialog open={tieDialogOpen} onClose={() => setTieDialogOpen(false)}>
-                <DialogTitle>Valkod mötesordförande</DialogTitle>
+                <DialogTitle>Valkod utslagsröst</DialogTitle>
                 <DialogContent>
-                <div style={{width:'300px', marginBottom:'20px'}}>Ange den valkod som avgör resultat vid oavgjort</div>
+                <div style={{width:'300px', marginBottom:'20px'}}>Ange den valkod som avgör resultat vid oavgjort (ex. mötesordförande). Obs! Denna kod ska endast läggas in här, ska alltså inte synas i "alla valkoder".   </div>
                     <TextField
                         style={{ marginTop: '10px' }}
                         label="Ange valkod"
