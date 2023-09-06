@@ -6,4 +6,5 @@ web-voting/node_modules
 web-voting/build
 .DS_Store
 .class
-voting-server/.gradle/**
+voting-server/.gradle/*
+.gradle/

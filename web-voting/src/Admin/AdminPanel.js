@@ -16,7 +16,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 
 function CreateElection(props) {
-    const host = "http://localhost:8080";
+    const host = "https://vote-server.isek.se";
 
     const [password, setPassword] = useState("");
     const [electionRunning, setRunning] = useState();
@@ -193,7 +193,7 @@ function CreateElection(props) {
 
     const startElection = (event) => {
         if (!electionRunning) {
-            if (currentId === 0 || currentId === undefined) {
+            if (currentId === 0 || currentId === undefined || currentId > tableRows.length) {
                 setCurrentId(1);
                 updateCurrentId(1);
             } else {
@@ -527,7 +527,7 @@ function CreateElection(props) {
             }).then(response => {
                 if (response.ok) {
                     setSeverity('success');
-                    setText("Ordförandes valkod uppdaterad: " + tieBreaker);
+                    setText("Valkod utslagsröst uppdaterades: " + tieBreaker);
                     setOpen(true);
                 } else {
                     alert("Could not be handled by server. Try again.");
@@ -758,7 +758,7 @@ function CreateElection(props) {
             <Dialog open={tieDialogOpen} onClose={() => setTieDialogOpen(false)}>
                 <DialogTitle>Valkod utslagsröst</DialogTitle>
                 <DialogContent>
-                <div style={{width:'300px', marginBottom:'20px'}}>Ange den valkod som avgör resultat vid oavgjort (ex. mötesordförande). Obs! Denna kod ska endast läggas in här, ska alltså inte synas i "alla valkoder".   </div>
+                <div style={{width:'300px', marginBottom:'20px'}}>Ange den valkod som avgör resultat vid oavgjort (ex. mötesordförande). Obs! Denna kod ska endast läggas in här, den får alltså EJ ingå i gästlistan.   </div>
                     <TextField
                         style={{ marginTop: '10px' }}
                         label="Ange valkod"

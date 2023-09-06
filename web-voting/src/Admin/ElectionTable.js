@@ -17,7 +17,7 @@ const columns = [
 ];
 
 export default function DataTable(props) {
-    const host = "http://localhost:8080";
+    const host = "https://vote-server.isek.se";
 
     const [rows, setRows] = useState([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

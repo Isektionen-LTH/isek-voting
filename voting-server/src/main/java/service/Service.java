@@ -705,7 +705,7 @@ public class Service {
       election.voters.removeIf(v -> v.voterId.equals(election.tieBreakerId));
 
       // Add new
-      String s = "{\"name\":Tiebreaker,\"voterId\":" + req.body() + "}";
+      String s = "{\"name\":Utslagsröst,\"voterId\":" + req.body() + "}";
       Voter newVoter = gson.fromJson(s, Voter.class);
       election.voters.add(newVoter);
       election.tieBreakerId = newVoter.voterId;

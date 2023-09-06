@@ -42,7 +42,7 @@ public class ElectionPart {
      * @param voterSize How many eligible votes.
      */
     public void addDecisionVote(DecisionVote vote, int voterSize) {
-        if (!decisionVotes.containsKey(vote.voterId)) {
+        if (!decisionVotes.containsKey(vote.voterId) && !vote.voterId.equals(tieBreakerId)) {
             votecount++;
         }
 
@@ -62,7 +62,7 @@ public class ElectionPart {
      * @param voterSize How many eligible votes.
      */
     public void addMultipleVote(DecisionVote vote, int voterSize) {
-        if (!multipleVotes.containsKey(vote.voterId)) {
+        if (!multipleVotes.containsKey(vote.voterId) && !vote.voterId.equals(tieBreakerId)) {
             votecount++;
         }
 
@@ -82,7 +82,7 @@ public class ElectionPart {
      * @param voterSize How many have voted so far.
      */
     public void addPersonVote(IRVvote vote, int voterSize) {
-        if (!personVotes.containsKey(vote.voterId)) {
+        if (!personVotes.containsKey(vote.voterId) && !vote.voterId.equals(tieBreakerId)) {
             votecount++;
         }
 
