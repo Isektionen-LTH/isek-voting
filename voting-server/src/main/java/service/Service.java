@@ -14,7 +14,7 @@ import com.google.gson.reflect.TypeToken;
 public class Service {
   private Election election; // Election object to handle all data.
   private Gson gson = new Gson(); // Used for JSON/Obj conversion.
-  private String password = "isekbjornenadmin1234!"; // Admin password: vote.isek.se/admin
+  private String password = "1"; // Admin password: vote.isek.se/admin
   private String currentElectionPart = "0"; // currentPart which is used for longPolling and client rendering.
   private MailService mail;
 
@@ -210,24 +210,14 @@ public class Service {
           updatedElectionParts[i] = electionParts.get(i);
         }
 
-        /*
-         * // Create a new array to hold the updated election parts
-         * ElectionPart[] updatedElectionParts = new
-         * ElectionPart[election.electionParts.length + electionParts.size()];
-         * 
-         * // Copy the existing election parts to the updated array
-         * System.arraycopy(election.electionParts, 0, updatedElectionParts, 0,
-         * election.electionParts.length);
-         * 
-         * // Add the new row to the updated array
-         * int startIndex = election.electionParts.length;
-         * for (int i = 0; i < electionParts.size(); i++) {
-         * updatedElectionParts[startIndex + i] = electionParts.get(i);
-         * }
-         */
-
         // Update the election's parts with the new array
         election.electionParts = updatedElectionParts;
+
+        if (election.tieBreakerId != null) {
+          for (ElectionPart part : election.electionParts) {
+            part.tieBreakerId = election.tieBreakerId;
+          }
+        }
 
         // Return the success message
         res.status(200);
@@ -710,9 +700,8 @@ public class Service {
       election.voters.add(newVoter);
       election.tieBreakerId = newVoter.voterId;
       for (ElectionPart part : election.electionParts) {
-        part.tieBreakerId = req.body();
+        part.tieBreakerId = newVoter.voterId;
       }
-      System.out.println(gson.toJson(election.voters));
       res.status(200);
       res.body("Tiebreaker changed.");
       return "Tiebreaker changed.";

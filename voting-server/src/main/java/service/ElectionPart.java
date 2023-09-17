@@ -42,15 +42,14 @@ public class ElectionPart {
      * @param voterSize How many eligible votes.
      */
     public void addDecisionVote(DecisionVote vote, int voterSize) {
-        if (!decisionVotes.containsKey(vote.voterId) && !vote.voterId.equals(tieBreakerId)) {
+        if (!decisionVotes.containsKey(vote.voterId)) {
             votecount++;
         }
-
         if (vote.voterId.equals(tieBreakerId)) {
             tieBreakerVote = vote.vote;
-        } else {
-            decisionVotes.put(vote.voterId, vote);
         }
+
+        decisionVotes.put(vote.voterId, vote);
         this.voterSize = voterSize;
     }
 
@@ -62,15 +61,15 @@ public class ElectionPart {
      * @param voterSize How many eligible votes.
      */
     public void addMultipleVote(DecisionVote vote, int voterSize) {
-        if (!multipleVotes.containsKey(vote.voterId) && !vote.voterId.equals(tieBreakerId)) {
+        if (!multipleVotes.containsKey(vote.voterId)) {
             votecount++;
         }
 
         if (vote.voterId.equals(tieBreakerId)) {
             tieBreakerVote = vote.vote;
-        } else {
-            multipleVotes.put(vote.voterId, vote);
         }
+
+        multipleVotes.put(vote.voterId, vote);
         this.voterSize = voterSize;
     }
 
@@ -82,15 +81,15 @@ public class ElectionPart {
      * @param voterSize How many have voted so far.
      */
     public void addPersonVote(IRVvote vote, int voterSize) {
-        if (!personVotes.containsKey(vote.voterId) && !vote.voterId.equals(tieBreakerId)) {
+        if (!personVotes.containsKey(vote.voterId)) {
             votecount++;
         }
 
         if (vote.voterId.equals(tieBreakerId)) {
             tieBreakerIRVvote = vote.vote;
-        } else {
-            personVotes.put(vote.voterId, vote);
         }
+
+        personVotes.put(vote.voterId, vote);
         this.voterSize = voterSize;
     }
 
@@ -210,7 +209,10 @@ public class ElectionPart {
                     rankings.add(candidate);
                 }
             }
-            allVotes.add(rankings);
+            // Only add rankings if not all null or blank.
+            if (rankings.size() != 0) {
+                allVotes.add(rankings);
+            }
         }
 
         // Initialize tie-breaker hashmap.
@@ -371,14 +373,14 @@ public class ElectionPart {
     }
 
     public boolean isWinnerChanged() {
-        if (winner == null){
-            oldWinner = winner; 
-            return false; 
-        } else if (oldWinner == null || !oldWinner.equals(winner)){
-            oldWinner = winner; 
-            return true; 
+        if (winner == null) {
+            oldWinner = winner;
+            return false;
+        } else if (oldWinner == null || !oldWinner.equals(winner)) {
+            oldWinner = winner;
+            return true;
         } else {
-            return false; 
+            return false;
         }
     }
 
