@@ -18,6 +18,7 @@ function Voting(props) {
     const handleCandidateSelection = (event, candidateIndex) => {
         const selectedCandidate = event.target.value;
         const updatedVotes = [...personVotes];
+        console.log("CandidateIndex: " + candidateIndex + ", SelectedCandidate: " + selectedCandidate);
 
         if (selectedCandidate === 'Vakant') {
             updatedVotes[candidateIndex] = 'Vakant';
@@ -34,6 +35,7 @@ function Voting(props) {
             }
 
             updatedVotes[candidateIndex] = selectedCandidate;
+            console.log(updatedVotes);
         }
 
         setPersonVotes(updatedVotes);
@@ -84,6 +86,7 @@ function Voting(props) {
 
     function castDecisionVote(voteData) {
         let url = host + '/cast-decision-vote/' + props.voterId;
+        console.log(voteData);
         fetch(url, {
             method: 'POST',
             headers: {
@@ -107,6 +110,7 @@ function Voting(props) {
     }
 
     function castPersonVote(voteData) {
+        console.log(voteData);
         let url = host + '/cast-person-vote/' + props.voterId;
         fetch(url, {
             method: 'POST',

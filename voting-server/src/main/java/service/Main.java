@@ -51,17 +51,13 @@ public class Main {
 
         get("/validate-admin/:password", (req, res) -> s.validateAdmin(req, res, req.params(":password")));
 
-        //post("/create-election/:password", (req, res) -> s.createElection(req, res, req.params(":password")));
-
         get("/elections/getdata/:password", (req, res) -> s.getElectionData(req, res, req.params(":password")));
 
         post("/elections/update-voters/:password", (req, res) -> s.updateElectionVoters(req, res, req.params(":password")));
 
+        post("/elections/update-roles/:password", (req, res) -> s.updateRoles(req, res, req.params(":password")));
+
         post("/elections/update-electionparts/:password", (req, res) -> s.updateElectionParts(req, res, req.params(":password"))); 
-
-        post("/set-tie-breaker/:password", (req, res) -> s.setTieBreaker(req, res, req.params(":password"))); 
-
-        //post("/elections/remove-electionpart/:password", (req, res) -> s.removeElectionPart(req, res, req.params(":password"))); 
         
         post("/set-current-part/:password", (req, res) -> s.setCurrentPart(req, res, req.params(":password"))); 
 
@@ -90,7 +86,6 @@ public class Main {
         get("/remove-all-voters/:password", (req, res) -> s.removeAllVoters(req, res, req.params(":password")));
 
         get("/get-all-voters/:password", (req, res) -> s.getAllVoters(req, res, req.params(":password")));
-
 
     }
 }

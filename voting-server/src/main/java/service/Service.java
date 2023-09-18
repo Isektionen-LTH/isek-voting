@@ -14,7 +14,7 @@ import com.google.gson.reflect.TypeToken;
 public class Service {
   private Election election; // Election object to handle all data.
   private Gson gson = new Gson(); // Used for JSON/Obj conversion.
-  private String password = "1"; // Admin password: vote.isek.se/admin
+  private String password = "isekbjornenadmin1234!"; // Admin password: vote.isek.se/admin
   private String currentElectionPart = "0"; // currentPart which is used for longPolling and client rendering.
   private MailService mail;
 
@@ -39,31 +39,6 @@ public class Service {
     res.status(200);
     return result;
   }
-
-  /**
-   * Endpoint to create an election.
-   * 
-   * @param req    Request object: Json representation of an Election.
-   * @param res    Response object
-   * @param params - admin password
-   * @return - Success or error message.
-   */
-  /*
-   * public String createElection(Request req, Response res, String params) {
-   * if (params.equals(password)) {
-   * Election e = gson.fromJson(req.body(), Election.class);
-   * election = e;
-   * var reponseBody = "Election created";
-   * res.body(reponseBody);
-   * res.status(201);
-   * return reponseBody;
-   * } else {
-   * res.status(403);
-   * res.body("Fel");
-   * return "Fel";
-   * }
-   * }
-   */
 
   /**
    * Retrieves election data.
@@ -108,14 +83,28 @@ public class Service {
     if (params.equals(password)) {
       try {
         String requestBody = req.body();
+        System.out.println(gson.toJson(req.body()));
 
         // Parse the JSON array of voters
         TypeToken<List<Voter>> token = new TypeToken<List<Voter>>() {
         };
         ArrayList<Voter> voters = gson.fromJson(requestBody, token.getType());
 
+        // Add permanent voters as well (styr + utslagsröst)
+        ArrayList<Voter> permanentVoters = new ArrayList<Voter>();
+        for (Voter voter : election.voters) {
+          if (voter.role != null) {
+            if (voter.role.equals("styr")) {
+              permanentVoters.add(voter);
+            } else if (voter.role.equals("utslag")) {
+              permanentVoters.add(voter);
+            }
+          }
+        }
+
         // Update the election's voters with the new values
         election.voters = voters;
+        election.voters.addAll(permanentVoters);
 
         // Return the updated voters as JSON response
         String responseJson = gson.toJson(election.voters);
@@ -136,54 +125,61 @@ public class Service {
   }
 
   /**
-   * Removes an election part from election.
-   *
-   * @param req    The request object.
-   * @param res    The response object.
-   * @param params admin password
-   * @return A string indicating the status of the removal process.
+   * Updates role of a singe voter
+   * 
+   * @param req
+   * @param res
+   * @param params Admin password.
+   * @return Success or error message.
    */
-  /*
-   * public String removeElectionPart(Request req, Response res, String params) {
-   * if (params.equals(password)) {
-   * try {
-   * 
-   * int partId = Integer.parseInt(req.body());
-   * 
-   * // Create a new array to hold the updated election parts
-   * ElectionPart[] updatedElectionParts = new
-   * ElectionPart[election.electionParts.length - 1];
-   * 
-   * // Copy the existing election parts to the updated array, excluding the part
-   * to
-   * // be removed
-   * int index = 0;
-   * for (ElectionPart electionPart : election.electionParts) {
-   * if (electionPart.id != partId) {
-   * updatedElectionParts[index] = electionPart;
-   * index++;
-   * }
-   * }
-   * 
-   * // Update the election's parts with the new array
-   * election.electionParts = updatedElectionParts;
-   * 
-   * // Return the success message
-   * res.status(200);
-   * return "Success";
-   * } catch (Exception e) {
-   * e.printStackTrace();
-   * res.status(500);
-   * res.body("Server error");
-   * return gson.toJson("Server error");
-   * }
-   * } else {
-   * res.status(403);
-   * res.body(null);
-   * return null;
-   * }
-   * }
-   */
+  public String updateRoles(Request req, Response res, String params) {
+    if (params.equals(password)) {
+      try {
+        Voter voterToBeChanged = gson.fromJson(req.body(), Voter.class);
+
+        // Remove tiebreaker status
+        if (voterToBeChanged.voterId.equals(election.tieBreakerId) && !voterToBeChanged.role.equals("utslag")) {
+          election.tieBreakerId = null;
+          for (ElectionPart part : election.electionParts) {
+            part.tieBreakerId = null;
+          }
+          // Switch tiebreaker
+        } else if (voterToBeChanged.role.equals("utslag")) {
+          for (Voter voter : election.voters) {
+            if (voter.role != null && voter.role.equals("utslag")) {
+              voter.role = null;
+            }
+          }
+          election.tieBreakerId = voterToBeChanged.voterId;
+          for (ElectionPart part : election.electionParts) {
+            part.tieBreakerId = voterToBeChanged.voterId;
+          }
+        }
+
+        // Updates role
+        for (Voter voter : election.voters) {
+          if (voter.voterId.equals(voterToBeChanged.voterId)) {
+            voter.role = voterToBeChanged.role;
+          }
+        }
+
+        // Return the updated voters as JSON response
+        String responseJson = gson.toJson(election.voters);
+        res.body(responseJson);
+        res.status(200);
+        return "Success";
+      } catch (Exception e) {
+        e.printStackTrace();
+        res.status(500);
+        res.body("Server error");
+        return "Server error";
+      }
+    } else {
+      res.status(403);
+      res.body(null);
+      return null;
+    }
+  }
 
   /**
    * Updates all electionParts.
@@ -665,6 +661,13 @@ public class Service {
     }
   }
 
+  /**
+   * Removes all voters, including styr and tiebreaker. 
+   * @param req
+   * @param res
+   * @param params
+   * @return
+   */
   public String removeAllVoters(Request req, Response res, String params) {
     if (params.equals(password)) {
       election.voters = new ArrayList<>();
@@ -678,33 +681,17 @@ public class Service {
     }
   }
 
+  /**
+   * Returns all voters. 
+   * @param req
+   * @param res
+   * @param params
+   * @return
+   */
   public String getAllVoters(Request req, Response res, String params) {
     if (params.equals(password)) {
       res.status(200);
       return gson.toJson(election.voters);
-    } else {
-      res.status(403);
-      res.body("Invalid authentication");
-      return gson.toJson("Invalid authentication");
-    }
-  }
-
-  public String setTieBreaker(Request req, Response res, String params) {
-    if (params.equals(password)) {
-      // Remove previous tiebreaker:
-      election.voters.removeIf(v -> v.voterId.equals(election.tieBreakerId));
-
-      // Add new
-      String s = "{\"name\":Utslagsröst,\"voterId\":" + req.body() + "}";
-      Voter newVoter = gson.fromJson(s, Voter.class);
-      election.voters.add(newVoter);
-      election.tieBreakerId = newVoter.voterId;
-      for (ElectionPart part : election.electionParts) {
-        part.tieBreakerId = newVoter.voterId;
-      }
-      res.status(200);
-      res.body("Tiebreaker changed.");
-      return "Tiebreaker changed.";
     } else {
       res.status(403);
       res.body("Invalid authentication");

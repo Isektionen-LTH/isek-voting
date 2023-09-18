@@ -13,6 +13,8 @@ import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 import DialogContentText from '@mui/material/DialogContentText';
+import { Checkbox } from '@mui/material';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 
 function CreateElection(props) {
@@ -28,13 +30,14 @@ function CreateElection(props) {
     const [severity, setSeverity] = useState('success');
 
     const [addVoterDialogOpen, setAddVoterDialogOpen] = useState(false);
-    const [newVoterId, setNewVoterId] = useState("");
+    const [newVoterId, setNewVoterId] = useState(generateRandomValkod);
+    const [newVoterName, setNewVoterName] = useState("");
+    const [newVoterEmail, setNewVoterEmail] = useState("");
+    const [checked, setChecked] = useState(false);
+
 
     const [removeVoterDialogOpen, setRemoveVoterDialogOpen] = useState(false);
     const [removeVoterId, setRemoveVoterId] = useState("");
-
-    const [permanentDialogOpen, setPermanentDialogOpen] = useState(false);
-    const [permanentVoterIds, setPermanentVoterIds] = useState([]);
 
     const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
     const [showWrongPassword, setShowWrongPassword] = useState(false);
@@ -53,24 +56,15 @@ function CreateElection(props) {
     const [ShowAllVotersDialogOpen, setShowAllVotersDialogOpen] = useState(false);
     const [allVoters, setAllVoters] = useState([]);
 
-    const [tieDialogOpen, setTieDialogOpen] = useState(false);
-    const [tieBreaker, setTieBreaker] = useState(); 
-
     useEffect(() => {
         getCurrentPart();
         setPassword(props.password);
-        const savedArray = sessionStorage.getItem('styr');
-        if (savedArray) {
-            setPermanentVoterIds(JSON.parse(savedArray));
-        }
     }, [props.password]);
 
     const menuFunctions = {
         setAddVoterDialogOpen,
         setRemoveVoterDialogOpen,
         setRemoveAllDialogOpen,
-        setPermanentDialogOpen,
-        setTieDialogOpen,
         setSendAllRemailsDialogOpen,
         setSendSingleEmailDialogOpen,
         setResetPasswordDialogOpen,
@@ -145,11 +139,6 @@ function CreateElection(props) {
                     data.push({ name, email, voterId });
                 }
             }
-        }
-
-        //Add permanentVoterIds(styr) as well: 
-        for (let i = 0; i < permanentVoterIds.length; i++) {
-            data.push({ "name":"Styr", "voterId": permanentVoterIds[i] });
         }
         return JSON.stringify(data);
     };
@@ -251,6 +240,31 @@ function CreateElection(props) {
         });
     }
 
+    function updateVoterRoles(voterId, newRole) {
+        let data = { "voterId": voterId, "role": newRole };
+        let url = host + "/elections/update-roles/" + password;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }).then(response => {
+            if (response.ok) {
+                setSeverity('success');
+                setText("Rollen har uppdaterats på servern.");
+                setOpen(true);
+                getAllVoters();
+            } else {
+                alert("Could not be handled by server. Try again.");
+            }
+        }).catch(error => {
+            setSeverity("error");
+            setText("Något gick fel, försök gärna igen.");
+            setOpen(true);
+        });
+    }
+
     function addVoter() {
         if (newVoterId === "") {
             setAddVoterDialogOpen(true);
@@ -263,12 +277,15 @@ function CreateElection(props) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ "voterId": newVoterId })
+                body: JSON.stringify({ "name": newVoterName, "voterId": newVoterId, "email": newVoterEmail })
             }).then(response => {
                 if (response.ok) {
                     setSeverity('success');
                     setText("Valkod tillagd i server: " + newVoterId);
                     setOpen(true);
+                    if (checked) {
+                        sendNewVoterEmail(newVoterEmail);
+                    }
                 } else {
                     alert("Could not be handled by server. Try again.");
                 }
@@ -277,15 +294,15 @@ function CreateElection(props) {
                 setText("Något gick fel, försök gärna igen.");
                 setOpen(true);
             });
-            setNewVoterId("");
+            let newId = generateRandomValkod;
+            setNewVoterId(newId);
+            setNewVoterName("");
+            setNewVoterEmail("");
+            setChecked(false);
         }
     }
 
     function removeVoter(voterId) {
-        if (permanentVoterIds.includes(voterId)){
-            setPermanentVoterIds((prevIds) => prevIds.filter((id) => id !== voterId));
-            sessionStorage.setItem("styr", JSON.stringify(permanentVoterIds));
-        }
         return new Promise((resolve, reject) => {
             if (voterId) {
                 let url = host + "/elections/remove-voter/" + password;
@@ -328,59 +345,6 @@ function CreateElection(props) {
                 resolve();
             }
         });
-    }
-
-
-
-    function addPermanentIds() {
-        cleanPermanentIds();
-        sessionStorage.setItem("styr", JSON.stringify(permanentVoterIds));
-        try {
-            for (let i = 0; i < permanentVoterIds.length; i++) {
-                if (permanentVoterIds[i] !== "") {
-                    let url = host + "/elections/add-voter/" + password;
-                    fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ "name":"Styr", "voterId": permanentVoterIds[i] })
-                    }).then(response => {
-                        if (response.ok) {
-                            setSeverity("success");
-                            setText("Valkoder har uppdaterats på servern.");
-                            setOpen(true);
-                        } else {
-                            if (!response.body === "Voter already exists") {
-                                alert("Could not be handled by server. Try again.");
-                            }
-                        }
-                    }).catch(error => {
-                        setSeverity("error");
-                        setText("Något gick fel, försök gärna igen.");
-                        setOpen(true);
-                    });
-                }
-            }
-            setPermanentDialogOpen(false);
-        } catch {
-            setSeverity("error");
-            setText("Något gick fel, försök gärna igen.");
-            setOpen(true);
-        }
-    }
-
-    function cleanPermanentIds() {
-        let correctIdsSet = new Set();
-
-        for (let i = 0; i < permanentVoterIds.length; i++) {
-            if (permanentVoterIds[i] !== "") {
-                correctIdsSet.add(permanentVoterIds[i]);
-            }
-        }
-
-        let correctIds = Array.from(correctIdsSet);
-        setPermanentVoterIds(correctIds);
     }
 
     function sendAllEmails() {
@@ -441,6 +405,34 @@ function CreateElection(props) {
             });
     }
 
+    function sendNewVoterEmail(newEmail) {
+        let url = host + "/send-single-email/" + password;
+        setShowLoading(true);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: newEmail
+        })
+            .then(response => {
+                if (response.ok) {
+                    setSeverity("success");
+                    setText("Mejlet har skickats.");
+                    setOpen(true);
+                    setSendSingleEmailDialogOpen(false);
+                }
+            })
+            .catch(error => {
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
+                setOpen(true);
+            })
+            .finally(() => {
+                setShowLoading(false);
+            });
+    }
 
     function resetPassword() {
         setShowLoading(true);
@@ -516,132 +508,24 @@ function CreateElection(props) {
             });
     }
 
-    function setServerTieBreaker(){
-        let url = host + "/set-tie-breaker/" + password;
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(tieBreaker)
-            }).then(response => {
-                if (response.ok) {
-                    setSeverity('success');
-                    setText("Valkod utslagsröst uppdaterades: " + tieBreaker);
-                    setOpen(true);
-                } else {
-                    alert("Could not be handled by server. Try again.");
-                }
-            }).catch(error => {
-                setSeverity("error");
-                setText("Något gick fel, försök gärna igen.");
-                setOpen(true);
-            });
-            setTieDialogOpen(false);
+    function generateRandomValkod() {
+        // Generate a random valkod in the specified format
+        const valkod = `${generateRandomSegment()}-${generateRandomSegment()}-${generateRandomSegment()}`;
+        return valkod;
     }
 
-
-    //TESTS
-    /* const longPolling = (() => {
-        let url = host + '/long-polling-part';
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data === "Omröstning saknas") {
-                } else {
-                }
-                // eslint-disable-next-line
-                longPolling();
-            })
-            .catch((error) => {
-                longPolling();
-            });
-    });
-
-    function castVoteTest(id) {
-        let url = host + '/cast-decision-vote/' + id;
-        let vote = randomizeJaNej();
-        let voteData = JSON.stringify({ "voterId": JSON.stringify(id), "electionPart": "1", "voteType": "Ja/Nej", "vote": vote });
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: voteData,
-        })
-            .then((response) => {
-                if (response.ok) {
-                } else {
-                    alert('Could not update server data. Try again.');
-                }
-            })
-            .catch((error) => {
-                alert('Something went wrong...');
-            });
-
-        return vote;
-
-    }
-
-    function randomizeJaNej() {
-        // Generate a random number between 0 and 1
-        var randomNum = Math.random();
-
-        // Set the options
-        var option1 = "Ja";
-        var option2 = "Nej";
-
-        // Conditionally choose between the options based on the random number
-        var result = randomNum < 0.5 ? option1 : option2;
-
-        return result;
-    }
-
-    function addVoterIdsTest(id) {
-        let url = host + "/elections/add-voter/" + password;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ "voterId": id })
-        }).then(response => {
-            if (response.ok) {
-
-            } else {
-                alert("Could not be handled by server. Try again.");
-            }
-        }).catch(error => alert("Something went wrong..."));
-    }
-
-
-    async function test() {
-        console.log("Test");
-        let no = 0;
-        let yes = 0;
-        for (let i = 1; i <= 490; i++) {
-            longPolling();
-            //addVoterIdsTest(i);
-
+    function generateRandomSegment() {
+        // Generate a random segment (e.g., '3TC7')
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let segment = '';
+        for (let i = 0; i < 4; i++) {
+            const randomIndex = Math.floor(Math.random() * characters.length);
+            segment += characters.charAt(randomIndex);
         }
-        await sleep(10000);
-
-        for (let i = 1; i <= 490; i++) {
-            let vote = castVoteTest(i);
-            if (vote === "Ja") {
-                yes++;
-            } else {
-                no++;
-            }
-        }
-
-        console.log("RESULT: " + yes + " Ja, " + no + " Nej");
-
+        return segment;
     }
 
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    } */
+
 
 
 
@@ -665,10 +549,33 @@ function CreateElection(props) {
                 <DialogContent>
                     <TextField
                         style={{ marginTop: '10px' }}
+                        label="Namn"
+                        value={newVoterName}
+                        onChange={(e) => setNewVoterName(e.target.value)}
+                        fullWidth
+                    />
+                    <TextField
+                        style={{ marginTop: '10px' }}
+                        label="Email"
+                        value={newVoterEmail}
+                        onChange={(e) => setNewVoterEmail(e.target.value)}
+                        fullWidth
+                    />
+                    <TextField
+                        style={{ marginTop: '10px' }}
                         label="Valkod"
                         value={newVoterId}
                         onChange={(e) => setNewVoterId(e.target.value)}
                         fullWidth
+                    />
+                    <FormControlLabel
+                        label="Skicka valkod på mejl"
+                        control={
+                            <Checkbox
+                                checked={checked}
+                                onChange={() => { setChecked(!checked); }}
+                            />
+                        }
                     />
                 </DialogContent>
                 <DialogActions>
@@ -691,34 +598,80 @@ function CreateElection(props) {
                         tabIndex={-1}
                         style={{
                             display: 'grid',
-                            gridTemplateColumns: 'auto auto auto auto',
+                            gridTemplateColumns: 'auto auto auto auto auto',
                             columnGap: '30px',
                             rowGap: '10px'
                         }}
                     >
-                        {allVoters.length === 0 ? (
-                            <div>Inga aktiva valkoder</div>
-                        ) : (
+                        {/* Column Titles */}
+                        <div style={{ fontWeight: 'bold' }}>Namn</div>
+                        <div style={{ fontWeight: 'bold' }}>Valkod</div>
+                        <div style={{ fontWeight: 'bold' }}>Email</div>
+                        <div style={{ fontWeight: 'bold' }}>Roll</div>
+                        <div style={{ fontWeight: 'bold' }}></div>
+
+                        {allVoters && allVoters.length > 0 ? (
                             allVoters.map((item) => (
                                 <React.Fragment key={item.voterId}>
                                     <div>{item.name}</div>
                                     <div>{item.voterId}</div>
                                     <div>{item.email}</div>
                                     <Button
+                                        style={{
+                                            background:
+                                                item.role === 'utslag' ? '#006570' : item.role === 'styr' ? '#008001' : 'grey',
+                                            height: '25px',
+                                            color: 'white',
+                                        }}
+                                        onClick={() => {
+                                            let newRole;
+                                            if (item.role === 'voter' || item.role === undefined) {
+                                                newRole = 'styr';
+                                            } else if (item.role === 'styr') {
+                                                newRole = 'utslag';
+                                            } else {
+                                                newRole = 'voter';
+                                            }
+
+                                            // Create a copy of allVoters with the updated role
+                                            const updatedVoters = allVoters.map((voter) =>
+                                                voter.voterId === item.voterId ? { ...voter, role: newRole } : voter
+                                            );
+
+                                            // Update the state with the new voter data
+                                            setAllVoters(updatedVoters)
+
+                                            // Make the API call to update the server and fetch updated data
+                                            updateVoterRoles(item.voterId, newRole);
+
+                                        }}
+                                    >
+                                        {item.role === 'voter' || item.role === undefined ? 'Röstare' : item.role}
+                                    </Button>
+
+                                    <Button
                                         style={{ background: '#70002D', height: '25px', color: 'white' }}
                                         onClick={() => {
                                             removeVoter(item.voterId)
-                                                .then(() => getAllVoters());
+                                                .then(async () => {
+                                                    // After removing the voter, update the state to trigger a re-render
+                                                    const updatedData = await getAllVoters();
+                                                    setAllVoters(updatedData);
+                                                });
                                         }}
                                     >
                                         Ta bort
                                     </Button>
                                 </React.Fragment>
                             ))
+                        ) : (
+                            <div>Inga aktiva valkoder</div>
                         )}
-                    </DialogContentText>
 
+
+                    </DialogContentText>
                 </DialogContent>
+
             </Dialog>
             <Dialog open={removeVoterDialogOpen} onClose={() => setRemoveVoterDialogOpen(false)}>
                 <DialogTitle>Ta bort valkod</DialogTitle>
@@ -736,46 +689,10 @@ function CreateElection(props) {
                     <Button onClick={() => { removeVoter(removeVoterId); setRemoveVoterId(''); }}>Ta bort</Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={permanentDialogOpen} onClose={() => setPermanentDialogOpen(false)}>
-                <DialogTitle>Valkoder styrelse</DialogTitle>
-                <DialogContent>
-                <div style={{width:'300px', marginBottom:'20px'}}>OBS: Lägg endast till valkoder här! För att ta bort, gör det i "Ta bort valkod" alt. "Alla valkoder"</div>
-                    <TextField
-                        style={{ marginTop: '10px' }}
-                        label="Lägg till valkoder (en per rad)"
-                        multiline
-                        rows={4}
-                        value={permanentVoterIds.join("\n")}
-                        onChange={(e) => setPermanentVoterIds(e.target.value.split("\n"))}
-                        fullWidth
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setPermanentDialogOpen(false)}>Avbryt</Button>
-                    <Button onClick={addPermanentIds}>Spara</Button>
-                </DialogActions>
-            </Dialog>
-            <Dialog open={tieDialogOpen} onClose={() => setTieDialogOpen(false)}>
-                <DialogTitle>Valkod utslagsröst</DialogTitle>
-                <DialogContent>
-                <div style={{width:'300px', marginBottom:'20px'}}>Ange den valkod som avgör resultat vid oavgjort (ex. mötesordförande). Obs! Denna kod ska endast läggas in här, den får alltså EJ ingå i gästlistan.   </div>
-                    <TextField
-                        style={{ marginTop: '10px' }}
-                        label="Ange valkod"
-                        value={tieBreaker}
-                        onChange={(e) => setTieBreaker(e.target.value)}
-                        fullWidth
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setTieDialogOpen(false)}>Avbryt</Button>
-                    <Button onClick={setServerTieBreaker}>Spara</Button>
-                </DialogActions>
-            </Dialog>
             <Dialog open={resetPasswordDialogOpen} onClose={() => setResetPasswordDialogOpen(false)}>
                 <DialogTitle>Ändra lösenord</DialogTitle>
                 <DialogContent>
-                <div>Nytt lösenord kommer att mejlas till voting@isek.se</div>
+                    <div>Nytt lösenord kommer att mejlas till voting@isek.se</div>
                     <TextField
                         helperText={showWrongPassword && "Fel lösenord"}
                         error={showWrongPassword}
@@ -805,7 +722,7 @@ function CreateElection(props) {
             <Dialog open={sendEmailsDialogOpen} onClose={() => setSendAllRemailsDialogOpen(false)}>
                 <DialogTitle>Skicka valkoder</DialogTitle>
                 <DialogContent>
-                    <p>Är du säker på att du vill skicka alla valkoder?</p>
+                    <div>Är du säker på att du vill skicka alla valkoder?</div>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setSendAllRemailsDialogOpen(false)}>Avbryt</Button>
@@ -815,7 +732,7 @@ function CreateElection(props) {
             <Dialog open={removeAllDialogOpen} onClose={() => setRemoveAllDialogOpen(false)}>
                 <DialogTitle>Ta bort alla valkoder</DialogTitle>
                 <DialogContent>
-                    <p>Är du säker på att du vill ta bort alla valkoder?</p>
+                    <div>Är du säker på att du vill ta bort alla valkoder?</div>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setRemoveAllDialogOpen(false)}>Avbryt</Button>

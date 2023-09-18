@@ -39,7 +39,7 @@ export default function DataTable(props) {
         if (!longPollingGoing && password) {
             setGoing(true);
             // Start long polling when the component mounts
-            longPollingResults();
+            //longPollingResults();
         }
         // eslint-disable-next-line
     }, [props.password, password, longPollingGoing]);
@@ -47,20 +47,20 @@ export default function DataTable(props) {
     const longPollingResults = () => {
         let url = host + '/long-polling-results/' + password;
         fetch(url)
-          .then((response) => response.json())
-          .then((data) => {
-            if (data !== null) {
-              setRows(data);
-              props.updateParentRows(data);
-            }
-            longPollingResults(); 
-          })
-          .catch((error) => {
-            console.log(error);
-            longPollingResults();
-          });
+            .then((response) => response.json())
+            .then((data) => {
+                if (data !== null) {
+                    setRows(data);
+                    props.updateParentRows(data);
+                }
+                //longPollingResults();
+            })
+            .catch((error) => {
+                console.log(error);
+                //longPollingResults();
+            });
     };
-    
+
     const handleOpenAddDialog = () => {
         setIsAddDialogOpen(true);
     };
@@ -105,13 +105,13 @@ export default function DataTable(props) {
         } else if (field === 'candidates') {
             const candidatesArray = value.split(/,\s*/);
             setNewRow((prevRow) => ({ ...prevRow, [field]: candidatesArray }));
-        } else if (field === 'multipleCandidates1'){
-            let currentArray = newRow.candidates || []; 
-            currentArray[0] = value; 
+        } else if (field === 'multipleCandidates1') {
+            let currentArray = newRow.candidates || [];
+            currentArray[0] = value;
             setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
-        } else if (field === 'multipleCandidates2'){
-            let currentArray = newRow.candidates || []; 
-            currentArray[1] = value; 
+        } else if (field === 'multipleCandidates2') {
+            let currentArray = newRow.candidates || [];
+            currentArray[1] = value;
             setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
         } else {
             setNewRow((prevRow) => ({ ...prevRow, [field]: value }));
@@ -289,7 +289,7 @@ export default function DataTable(props) {
                                     id="alternative-1"
                                     fullWidth
                                     value={newRow.alternative1 || ''}
-                                    onChange={(e) => {handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value)}}
+                                    onChange={(e) => { handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value) }}
                                 />
                                 <InputLabel htmlFor="alternative-2">Alternativ 2</InputLabel>
                                 <TextField
@@ -298,7 +298,7 @@ export default function DataTable(props) {
                                     id="alternative-2"
                                     fullWidth
                                     value={newRow.alternative2 || ''}
-                                    onChange={(e) => {handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value)}}
+                                    onChange={(e) => { handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value) }}
                                 />
                             </>
                         )}

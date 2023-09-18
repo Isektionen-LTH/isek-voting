@@ -6,5 +6,6 @@ package service;
 public class Voter {
     public String name;
     public String email;
-    public String voterId; 
+    public String voterId;
+    public String role; 
 }
