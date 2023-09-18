@@ -15,6 +15,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import DialogContentText from '@mui/material/DialogContentText';
 import { Checkbox } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import { Close as CloseIcon } from '@mui/icons-material';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 
 
 function CreateElection(props) {
@@ -591,87 +593,111 @@ function CreateElection(props) {
                 aria-labelledby="scroll-dialog-title"
                 aria-describedby="scroll-dialog-description"
             >
-                <DialogTitle id="scroll-dialog-title">Alla valkoder</DialogTitle>
-                <DialogContent dividers>
-                    <DialogContentText
-                        id="scroll-dialog-description"
-                        tabIndex={-1}
+                <div style={{ position: 'relative' }}>
+                    {/* <QuestionMarkIcon
+                        onClick={() => alert("\bInstruktioner: \n\nHär ser du samtliga aktiva valkoder. Du kan lägga till valkoder, ta bort eller ändra roll för deltagare. \n\nUnder \"Roll\" ser du den nuvarande rollen. För att ändra klickar du på knappen, vilket växlar mellan rollerna. Endast en kan vara utslag (mötesordförande) åt taget.")}
                         style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'auto auto auto auto auto',
-                            columnGap: '30px',
-                            rowGap: '10px'
+                            position: 'absolute',
+                            top: '10px',
+                            right: '50px',
+                            cursor: 'pointer',
+                            fontSize: '20px',
+                            marginTop: '6px',
+
                         }}
-                    >
-                        {/* Column Titles */}
-                        <div style={{ fontWeight: 'bold' }}>Namn</div>
-                        <div style={{ fontWeight: 'bold' }}>Valkod</div>
-                        <div style={{ fontWeight: 'bold' }}>Email</div>
-                        <div style={{ fontWeight: 'bold' }}>Roll</div>
-                        <div style={{ fontWeight: 'bold' }}></div>
+                    /> */}
+                    <CloseIcon
+                        onClick={() => setShowAllVotersDialogOpen(false)}
+                        style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '20px',
+                            cursor: 'pointer',
+                            marginTop: '5px', // Added margin-top to vertically align with QuestionMarkIcon
+                        }}
+                    />
 
-                        {allVoters && allVoters.length > 0 ? (
-                            allVoters.map((item) => (
-                                <React.Fragment key={item.voterId}>
-                                    <div>{item.name}</div>
-                                    <div>{item.voterId}</div>
-                                    <div>{item.email}</div>
-                                    <Button
-                                        style={{
-                                            background:
-                                                item.role === 'utslag' ? '#006570' : item.role === 'styr' ? '#008001' : 'grey',
-                                            height: '25px',
-                                            color: 'white',
-                                        }}
-                                        onClick={() => {
-                                            let newRole;
-                                            if (item.role === 'voter' || item.role === undefined) {
-                                                newRole = 'styr';
-                                            } else if (item.role === 'styr') {
-                                                newRole = 'utslag';
-                                            } else {
-                                                newRole = 'voter';
-                                            }
+                    <DialogTitle id="scroll-dialog-title">Alla valkoder</DialogTitle>
+                    <DialogContent dividers>
+                        <DialogContentText
+                            id="scroll-dialog-description"
+                            tabIndex={-1}
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'auto auto auto auto auto',
+                                columnGap: '30px',
+                                rowGap: '10px'
+                            }}
+                        >
+                            {/* Column Titles */}
+                            <div style={{ fontWeight: 'bold' }}>Namn</div>
+                            <div style={{ fontWeight: 'bold' }}>Valkod</div>
+                            <div style={{ fontWeight: 'bold' }}>Email</div>
+                            <div style={{ fontWeight: 'bold' }}>Roll</div>
+                            <div style={{ fontWeight: 'bold' }}></div>
 
-                                            // Create a copy of allVoters with the updated role
-                                            const updatedVoters = allVoters.map((voter) =>
-                                                voter.voterId === item.voterId ? { ...voter, role: newRole } : voter
-                                            );
+                            {allVoters && allVoters.length > 0 ? (
+                                allVoters.map((item) => (
+                                    <React.Fragment key={item.voterId}>
+                                        <div>{item.name}</div>
+                                        <div>{item.voterId}</div>
+                                        <div>{item.email}</div>
+                                        <Button
+                                            style={{
+                                                background:
+                                                    item.role === 'utslag' ? '#006570' : item.role === 'styr' ? '#008001' : 'grey',
+                                                height: '25px',
+                                                color: 'white',
+                                            }}
+                                            onClick={() => {
+                                                let newRole;
+                                                if (item.role === 'voter' || item.role === undefined) {
+                                                    newRole = 'styr';
+                                                } else if (item.role === 'styr') {
+                                                    newRole = 'utslag';
+                                                } else {
+                                                    newRole = 'voter';
+                                                }
 
-                                            // Update the state with the new voter data
-                                            setAllVoters(updatedVoters)
+                                                // Create a copy of allVoters with the updated role
+                                                const updatedVoters = allVoters.map((voter) =>
+                                                    voter.voterId === item.voterId ? { ...voter, role: newRole } : voter
+                                                );
 
-                                            // Make the API call to update the server and fetch updated data
-                                            updateVoterRoles(item.voterId, newRole);
+                                                // Update the state with the new voter data
+                                                setAllVoters(updatedVoters)
 
-                                        }}
-                                    >
-                                        {item.role === 'voter' || item.role === undefined ? 'Röstare' : item.role}
-                                    </Button>
+                                                // Make the API call to update the server and fetch updated data
+                                                updateVoterRoles(item.voterId, newRole);
 
-                                    <Button
-                                        style={{ background: '#70002D', height: '25px', color: 'white' }}
-                                        onClick={() => {
-                                            removeVoter(item.voterId)
-                                                .then(async () => {
-                                                    // After removing the voter, update the state to trigger a re-render
-                                                    const updatedData = await getAllVoters();
-                                                    setAllVoters(updatedData);
-                                                });
-                                        }}
-                                    >
-                                        Ta bort
-                                    </Button>
-                                </React.Fragment>
-                            ))
-                        ) : (
-                            <div>Inga aktiva valkoder</div>
-                        )}
+                                            }}
+                                        >
+                                            {item.role === 'voter' || item.role === undefined ? 'Röstare' : item.role}
+                                        </Button>
+
+                                        <Button
+                                            style={{ background: '#70002D', height: '25px', color: 'white' }}
+                                            onClick={() => {
+                                                removeVoter(item.voterId)
+                                                    .then(async () => {
+                                                        // After removing the voter, update the state to trigger a re-render
+                                                        const updatedData = await getAllVoters();
+                                                        setAllVoters(updatedData);
+                                                    });
+                                            }}
+                                        >
+                                            Ta bort
+                                        </Button>
+                                    </React.Fragment>
+                                ))
+                            ) : (
+                                <div>Inga aktiva valkoder</div>
+                            )}
 
 
-                    </DialogContentText>
-                </DialogContent>
-
+                        </DialogContentText>
+                    </DialogContent>
+                </div>
             </Dialog>
             <Dialog open={removeVoterDialogOpen} onClose={() => setRemoveVoterDialogOpen(false)}>
                 <DialogTitle>Ta bort valkod</DialogTitle>
