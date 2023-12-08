@@ -1,5 +1,5 @@
 Hej! 
-
+test
 Det här är en Java backend server + React frontend för att hantera I-sektionens röstningsystem på HT/VT möten. 
 All kommunikation sker över HTTP med JSON objekt. Jag har försökt dokumentera all kod så noggrant som möjligt. 
 Om det återstår några frågor går det bra att kontakta mig på victor@sannicolo.se. Det blev lite större projekt än
