@@ -54,16 +54,6 @@ const Menu = (props) => {
                 <ListItemText primary="Ta bort alla valkoder" />
               </ListItemButton>
             </ListItem>
-            <ListItem key="voting-codes-board" disablePadding>
-              <ListItemButton onClick={() => { props.menuFunctions.setPermanentDialogOpen(true); handleMenuItemClick(); }}>
-                <ListItemText primary="Valkoder styrelse" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem key="tiebreaker" disablePadding>
-              <ListItemButton onClick={() => { props.menuFunctions.setTieDialogOpen(true); handleMenuItemClick(); }}>
-                <ListItemText primary="Valkod ordförande" />
-              </ListItemButton>
-            </ListItem>
             <Divider style={{ background: 'white' }} />
             <ListItem key="send-voting-codes" disablePadding>
               <ListItemButton onClick={() => { props.menuFunctions.setSendAllRemailsDialogOpen(true); handleMenuItemClick(); }}>

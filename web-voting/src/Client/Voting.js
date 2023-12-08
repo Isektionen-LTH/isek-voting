@@ -7,16 +7,18 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 function Voting(props) {
-    const host = 'http://localhost:8080';
+    const host = 'https://vote-server.isek.se';
     const [hasVoted, setHasVoted] = useState(false);
     const [currentElectionId, setElectionId] = useState(props.current.id);
     const [personVotes, setPersonVotes] = useState([]);
     const [open, setOpen] = useState(false); //Success message
+    const [changeVoteOpen, setChangeOpen] = useState(false);
     const [snackText, setText] = useState("");
 
     const handleCandidateSelection = (event, candidateIndex) => {
         const selectedCandidate = event.target.value;
         const updatedVotes = [...personVotes];
+        console.log("CandidateIndex: " + candidateIndex + ", SelectedCandidate: " + selectedCandidate);
 
         if (selectedCandidate === 'Vakant') {
             updatedVotes[candidateIndex] = 'Vakant';
@@ -33,6 +35,7 @@ function Voting(props) {
             }
 
             updatedVotes[candidateIndex] = selectedCandidate;
+            console.log(updatedVotes);
         }
 
         setPersonVotes(updatedVotes);
@@ -43,6 +46,8 @@ function Voting(props) {
         setElectionId(props.current.id);
         setHasVoted(false);
         if (event.target.value === 'changeVote') {
+            setChangeOpen(true);
+            setText("Din tidigare röst behålls tills du valt ett nytt alternativ");
             setHasVoted(false);
         } else if (event.target.value === 'Ja' || event.target.value === 'Nej') {
             const voteData = JSON.stringify({
@@ -60,7 +65,7 @@ function Voting(props) {
                 vote: personVotes,
             });
             castPersonVote(voteData);
-        } else if (event.target.value === 'alternative1'){
+        } else if (event.target.value === 'alternative1') {
             const voteData = JSON.stringify({
                 voterId: props.voterId,
                 electionPart: props.current.id.toString(),
@@ -68,7 +73,7 @@ function Voting(props) {
                 vote: props.current.alternative1,
             });
             castMultipleVote(voteData);
-        } else if (event.target.value === 'alternative2'){
+        } else if (event.target.value === 'alternative2') {
             const voteData = JSON.stringify({
                 voterId: props.voterId,
                 electionPart: props.current.id.toString(),
@@ -81,6 +86,7 @@ function Voting(props) {
 
     function castDecisionVote(voteData) {
         let url = host + '/cast-decision-vote/' + props.voterId;
+        console.log(voteData);
         fetch(url, {
             method: 'POST',
             headers: {
@@ -104,6 +110,7 @@ function Voting(props) {
     }
 
     function castPersonVote(voteData) {
+        console.log(voteData);
         let url = host + '/cast-person-vote/' + props.voterId;
         fetch(url, {
             method: 'POST',
@@ -128,7 +135,7 @@ function Voting(props) {
             });
     }
 
-    function castMultipleVote(voteData){
+    function castMultipleVote(voteData) {
         let url = host + '/cast-multiple-vote/' + props.voterId;
         fetch(url, {
             method: 'POST',
@@ -156,8 +163,14 @@ function Voting(props) {
         if (reason === 'clickaway') {
             return;
         }
-
         setOpen(false);
+    };
+
+    const handleChangeClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setChangeOpen(false);
     };
 
 
@@ -176,7 +189,16 @@ function Voting(props) {
     } else if (props.current.type === 'Ja/Nej') {
         return (
             <div className='main'>
-
+                <Snackbar
+                    open={changeVoteOpen}
+                    autoHideDuration={5000}
+                    onClose={handleChangeClose}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                >
+                    <Alert onClose={handleChangeClose} severity='info' sx={{ width: '100%', background: 'white' }}>
+                        {snackText}
+                    </Alert>
+                </Snackbar>
                 <div className='centerDecision'>
                     <h1 className='title'>{props.current.title}</h1>
                     <Button variant='contained' value='Ja' className='choiceButton' onClick={buttonClick}>
@@ -192,6 +214,16 @@ function Voting(props) {
         console.log(props.current);
         return (
             <div className='main'>
+                <Snackbar
+                    open={changeVoteOpen}
+                    autoHideDuration={5000}
+                    onClose={handleChangeClose}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                >
+                    <Alert onClose={handleChangeClose} severity='info' sx={{ width: '100%', background: 'white' }}>
+                        {snackText}
+                    </Alert>
+                </Snackbar>
                 <div className='centerDecision'>
                     <h1 className='title'>{props.current.title}</h1>
                     <Button variant='contained' value='alternative1' className='choiceButton2' onClick={buttonClick}>
@@ -207,6 +239,16 @@ function Voting(props) {
         if (props.current.candidates.length <= 6) {
             return (
                 <div>
+                    <Snackbar
+                        open={changeVoteOpen}
+                        autoHideDuration={5000}
+                        onClose={handleChangeClose}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                    >
+                        <Alert onClose={handleChangeClose} severity='info' sx={{ width: '100%', background: 'white' }}>
+                            {snackText}
+                        </Alert>
+                    </Snackbar>
                     <Snackbar
                         open={open}
                         autoHideDuration={5000}
@@ -254,6 +296,16 @@ function Voting(props) {
         } else {
             return (
                 <div>
+                    <Snackbar
+                        open={changeVoteOpen}
+                        autoHideDuration={5000}
+                        onClose={handleChangeClose}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                    >
+                        <Alert onClose={handleChangeClose} severity='info' sx={{ width: '100%', background: 'white' }}>
+                            {snackText}
+                        </Alert>
+                    </Snackbar>
                     <Snackbar
                         open={open}
                         autoHideDuration={5000}

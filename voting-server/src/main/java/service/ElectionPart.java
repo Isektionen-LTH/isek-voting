@@ -45,12 +45,11 @@ public class ElectionPart {
         if (!decisionVotes.containsKey(vote.voterId)) {
             votecount++;
         }
-
         if (vote.voterId.equals(tieBreakerId)) {
             tieBreakerVote = vote.vote;
-        } else {
-            decisionVotes.put(vote.voterId, vote);
         }
+
+        decisionVotes.put(vote.voterId, vote);
         this.voterSize = voterSize;
     }
 
@@ -68,9 +67,9 @@ public class ElectionPart {
 
         if (vote.voterId.equals(tieBreakerId)) {
             tieBreakerVote = vote.vote;
-        } else {
-            multipleVotes.put(vote.voterId, vote);
         }
+
+        multipleVotes.put(vote.voterId, vote);
         this.voterSize = voterSize;
     }
 
@@ -88,9 +87,9 @@ public class ElectionPart {
 
         if (vote.voterId.equals(tieBreakerId)) {
             tieBreakerIRVvote = vote.vote;
-        } else {
-            personVotes.put(vote.voterId, vote);
         }
+
+        personVotes.put(vote.voterId, vote);
         this.voterSize = voterSize;
     }
 
@@ -210,7 +209,10 @@ public class ElectionPart {
                     rankings.add(candidate);
                 }
             }
-            allVotes.add(rankings);
+            // Only add rankings if not all null or blank.
+            if (rankings.size() != 0) {
+                allVotes.add(rankings);
+            }
         }
 
         // Initialize tie-breaker hashmap.
@@ -229,7 +231,6 @@ public class ElectionPart {
                 String firstChoice = rankings.get(0);
                 firstRanks.put(firstChoice, firstRanks.getOrDefault(firstChoice, 0) + 1);
             }
-            System.out.println(firstRanks);
 
             // Set threshold
             int threshold = Math.round(allVotes.size() / 2);
@@ -295,7 +296,6 @@ public class ElectionPart {
                         if (containsCandidate) {
                             for (String candidate : tieBreakerIRVvote) {
                                 if (candidatesWithLeastVotes.contains(candidate) && !winners.contains(candidate)) {
-                                    System.out.println(candidate);
                                     winners.add(candidate);
                                     break;
                                 }
@@ -371,7 +371,10 @@ public class ElectionPart {
     }
 
     public boolean isWinnerChanged() {
-        if (oldWinner == null || !oldWinner.equals(winner)) {
+        if (winner == null) {
+            oldWinner = winner;
+            return false;
+        } else if (oldWinner == null || !oldWinner.equals(winner)) {
             oldWinner = winner;
             return true;
         } else {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import './ElectionTable.css';
 import { DataGrid } from '@mui/x-data-grid';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -17,7 +17,7 @@ const columns = [
 ];
 
 export default function DataTable(props) {
-    const host = "http://localhost:8080";
+    const host = "https://vote-server.isek.se";
 
     const [rows, setRows] = useState([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -38,12 +38,13 @@ export default function DataTable(props) {
         }
         if (!longPollingGoing && password) {
             setGoing(true);
-            longPollingResults();
+            // Start long polling when the component mounts
+            //longPollingResults();
         }
         // eslint-disable-next-line
-    }, [props.password, props.currentId, password]);
+    }, [props.password, password, longPollingGoing]);
 
-    const longPollingResults = useCallback(() => {
+    const longPollingResults = () => {
         let url = host + '/long-polling-results/' + password;
         fetch(url)
             .then((response) => response.json())
@@ -52,15 +53,13 @@ export default function DataTable(props) {
                     setRows(data);
                     props.updateParentRows(data);
                 }
-                // eslint-disable-next-line
-                longPollingResults();
+                //longPollingResults();
             })
             .catch((error) => {
                 console.log(error);
-                longPollingResults();
+                //longPollingResults();
             });
-        // eslint-disable-next-line
-    }, [password]);
+    };
 
     const handleOpenAddDialog = () => {
         setIsAddDialogOpen(true);
@@ -106,13 +105,13 @@ export default function DataTable(props) {
         } else if (field === 'candidates') {
             const candidatesArray = value.split(/,\s*/);
             setNewRow((prevRow) => ({ ...prevRow, [field]: candidatesArray }));
-        } else if (field === 'multipleCandidates1'){
-            let currentArray = newRow.candidates || []; 
-            currentArray[0] = value; 
+        } else if (field === 'multipleCandidates1') {
+            let currentArray = newRow.candidates || [];
+            currentArray[0] = value;
             setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
-        } else if (field === 'multipleCandidates2'){
-            let currentArray = newRow.candidates || []; 
-            currentArray[1] = value; 
+        } else if (field === 'multipleCandidates2') {
+            let currentArray = newRow.candidates || [];
+            currentArray[1] = value;
             setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
         } else {
             setNewRow((prevRow) => ({ ...prevRow, [field]: value }));
@@ -290,7 +289,7 @@ export default function DataTable(props) {
                                     id="alternative-1"
                                     fullWidth
                                     value={newRow.alternative1 || ''}
-                                    onChange={(e) => {handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value)}}
+                                    onChange={(e) => { handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value) }}
                                 />
                                 <InputLabel htmlFor="alternative-2">Alternativ 2</InputLabel>
                                 <TextField
@@ -299,7 +298,7 @@ export default function DataTable(props) {
                                     id="alternative-2"
                                     fullWidth
                                     value={newRow.alternative2 || ''}
-                                    onChange={(e) => {handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value)}}
+                                    onChange={(e) => { handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value) }}
                                 />
                             </>
                         )}
