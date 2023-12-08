@@ -44,23 +44,6 @@ export default function DataTable(props) {
         // eslint-disable-next-line
     }, [props.password, password, longPollingGoing]);
 
-    const longPollingResults = () => {
-        let url = host + '/long-polling-results/' + password;
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data !== null) {
-                    setRows(data);
-                    props.updateParentRows(data);
-                }
-                //longPollingResults();
-            })
-            .catch((error) => {
-                console.log(error);
-                //longPollingResults();
-            });
-    };
-
     const handleOpenAddDialog = () => {
         setIsAddDialogOpen(true);
     };
