@@ -8,3 +8,4 @@ web-voting/build
 .class
 voting-server/.gradle/*
 .gradle/
+voting-server/bin
