@@ -16,8 +16,6 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Checkbox } from '@mui/material';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { Close as CloseIcon } from '@mui/icons-material';
-import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
-
 
 function CreateElection(props) {
     const host = "https://vote-server.isek.se";
@@ -104,8 +102,8 @@ function CreateElection(props) {
         const contents = await readFileAsText(file);
         const parsedData = parseCsvData(contents);
         updateVoters(parsedData); // Pass the parsed data to the updateVoters function
-    };
 
+    };
 
     const readFileAsText = (file) => {
         return new Promise((resolve, reject) => {

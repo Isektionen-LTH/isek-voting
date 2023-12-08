@@ -15,9 +15,7 @@ public class Main {
         Service s = new Service();
         spark.Spark.threadPool(1000);
 
-        /**
-         * Before method sets allowed origin requests. Should be set to vote client URL for safety reasons (currently vote.isek.se)!
-         */
+
         before(
                 (request, response) -> {
                     response.header("Access-Control-Allow-Origin", "*");

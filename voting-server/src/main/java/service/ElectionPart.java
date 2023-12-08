@@ -231,7 +231,6 @@ public class ElectionPart {
                 String firstChoice = rankings.get(0);
                 firstRanks.put(firstChoice, firstRanks.getOrDefault(firstChoice, 0) + 1);
             }
-            System.out.println(firstRanks);
 
             // Set threshold
             int threshold = Math.round(allVotes.size() / 2);
@@ -297,7 +296,6 @@ public class ElectionPart {
                         if (containsCandidate) {
                             for (String candidate : tieBreakerIRVvote) {
                                 if (candidatesWithLeastVotes.contains(candidate) && !winners.contains(candidate)) {
-                                    System.out.println(candidate);
                                     winners.add(candidate);
                                     break;
                                 }
