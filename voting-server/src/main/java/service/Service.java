@@ -699,4 +699,18 @@ public class Service {
     }
   }
 
+  public String reloadGuestList(Request req, Response res, String params) {
+    if (params.equals(password)) {
+      //Reload guests
+
+
+      res.status(200);
+      return "Success"; 
+    } else {
+      res.status(403);
+      res.body("Invalid authentication");
+      return gson.toJson("Invalid authentication");
+    }
+  }
+
 }

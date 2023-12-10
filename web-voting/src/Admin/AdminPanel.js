@@ -3,6 +3,8 @@ import FileUploadComponent from './FileUploadComponent';
 import './AdminPanel.css';
 import Menu from './Menu.js';
 import Button from '@mui/material/Button';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ElectionTable from './ElectionTable.js';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -56,6 +58,10 @@ function CreateElection(props) {
     const [ShowAllVotersDialogOpen, setShowAllVotersDialogOpen] = useState(false);
     const [allVoters, setAllVoters] = useState([]);
 
+    const [wixDialogOpen, setWixDialogOpen] = useState(false);
+    const [eventUrl, setEventUrl] = useState("");
+    const [wixUrlSlug, setWixUrlSlug] = useState("");
+
     useEffect(() => {
         getCurrentPart();
         setPassword(props.password);
@@ -69,6 +75,7 @@ function CreateElection(props) {
         setSendSingleEmailDialogOpen,
         setResetPasswordDialogOpen,
         getAllVoters,
+        setWixDialogOpen
     };
 
     function getCurrentPart() {
@@ -98,10 +105,65 @@ function CreateElection(props) {
             });
     }
 
+    function refreshFromWix() {
+        let slug = wixUrlSlug;
+        if (slug === ("")) {
+            alert("Du måste ange URL till eventet i menuvalet \"Wix\" först.")
+        } else {
+            console.log(slug);
+
+            let retrieveEventUrl = "https://www.wixapis.com/events/v1/events/event?slug=" + slug; 
+            let headers = new Headers();
+            headers.append("Content-Type", "application/json");
+            headers.append("Authorization", "IST.eyJraWQiOiJQb3pIX2FDMiIsImFsZyI6IlJTMjU2In0.eyJkYXRhIjoie1wiaWRcIjpcImRkYTU0ZTE5LWVkMmItNDJmMC1hYTU0LWUyOWNkNjYwMThjYVwiLFwiaWRlbnRpdHlcIjp7XCJ0eXBlXCI6XCJhcHBsaWNhdGlvblwiLFwiaWRcIjpcImY3NzllMTI1LTVjMjMtNGViNS1hM2FlLWIwYTBlNTA5YzZiMlwifSxcInRlbmFudFwiOntcInR5cGVcIjpcImFjY291bnRcIixcImlkXCI6XCI3OWVlMWQ5Yy0xNDU3LTRlOTEtODNkMS05NjljMjNiMWRlMzJcIn19IiwiaWF0IjoxNzAyMDQ1MTgxfQ.QgI1ho7WFBs_rzipLbtm1QihX94e3G64J4aYISNjfrZWVplC4Liqr4MloIpA72lQ_SU8MjaM51Yqj1SoGrfxnZhIzRyw9kKAJXdBGIGSxvUqbi6YcWeyPtzYnI1UdNEGsKJioK6rD-2bmxQvDIoKX7swDGSGpwE8X58ZnR05Nn-TMA6Z58Jj7hMoOw9fao1ZBcBA0LEI5_YsBKSQq66Jd8mZ0t9EBws-BlcQ1gN40-2WZ88EOUpn2_GBTIKqRhKRvCyfshAQ_VbZ75gnS5tco3zeHdYzLEwmFuPnkKRQS6yszWB7vPhfr3vDMxeNhyBvPhS_s4uFbYqxGpKiUJkWjg");
+            headers.append("wix-account-id", "79ee1d9c-1457-4e91-83d1-969c23b1de32");
+            headers.append("wix-site-id", "10931ecf-bcec-4203-9a8a-df44a225b0d2")
+            fetch(retrieveEventUrl, {
+                method: "GET",
+                headers: headers,
+              })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    setSeverity("error");
+                    setText("Något gick fel, försök gärna igen.");
+                    setOpen(true);
+                }
+            }).then((data) => {
+                console.log(data);
+            })
+            .catch((error) => {
+                setSeverity("error");
+                setText("Något gick fel, kontrollera URL och försök igen.");
+                setOpen(true);
+            });
+
+        }
+    }
+
+    function changeWixUrlSlug() {
+        let url = eventUrl;
+        let segments = url.split('/');
+        let lastSegment = segments[segments.length - 1];
+
+        console.log(lastSegment);
+        setWixUrlSlug(lastSegment);
+    }
+
+    function removeCheckInWix() {
+        let slug = wixUrlSlug;
+        if (slug === ("")) {
+            alert("Du måste ange URL till eventet i menuvalet \"Wix\" först.")
+        } else {
+            console.log(slug);
+        }
+    }
     const handleFileUpload = async (file) => {
         const contents = await readFileAsText(file);
         const parsedData = parseCsvData(contents);
         updateVoters(parsedData); // Pass the parsed data to the updateVoters function
+        console.log(parsedData);
 
     };
 
@@ -592,31 +654,29 @@ function CreateElection(props) {
                 aria-describedby="scroll-dialog-description"
             >
                 <div style={{ position: 'relative' }}>
-                    {/* <QuestionMarkIcon
-                        onClick={() => alert("\bInstruktioner: \n\nHär ser du samtliga aktiva valkoder. Du kan lägga till valkoder, ta bort eller ändra roll för deltagare. \n\nUnder \"Roll\" ser du den nuvarande rollen. För att ändra klickar du på knappen, vilket växlar mellan rollerna. Endast en kan vara utslag (mötesordförande) åt taget.")}
-                        style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '50px',
-                            cursor: 'pointer',
-                            fontSize: '20px',
-                            marginTop: '6px',
-
-                        }}
-                    /> */}
                     <CloseIcon
                         onClick={() => setShowAllVotersDialogOpen(false)}
                         style={{
                             position: 'absolute',
                             top: '10px',
-                            right: '20px',
+                            right: '10px',
                             cursor: 'pointer',
-                            marginTop: '5px', // Added margin-top to vertically align with QuestionMarkIcon
+                            marginTop: '10px', // Added margin-top to vertically align with QuestionMarkIcon
+                            marginBottom: '5px'
                         }}
                     />
-
-                    <DialogTitle id="scroll-dialog-title">Alla valkoder</DialogTitle>
-                    <DialogContent dividers>
+                    <DialogTitle id="scroll-dialog-title" style={{ marginBottom: '35px' }}>Alla valkoder</DialogTitle>
+                    <div style={{ position: 'absolute', left: '20px', top: '70px', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#70002D' }} onClick={refreshFromWix}>
+                        <RefreshIcon
+                            style={{
+                                cursor: 'pointer',
+                                textSize: '10px'
+                            }}
+                        />
+                        <div style={{ marginLeft: '5px', marginRight: '10px' }}>Uppdatera från Wix</div>
+                    </div>
+                    <div style={{ position: 'absolute', top: '70px', right: '20px', color: '#70002D', cursor: 'pointer' }} onClick={removeCheckInWix}>Checka ut alla på Wix</div>
+                    <DialogContent dividers style={{ marginTop: '30px' }}>
                         <DialogContentText
                             id="scroll-dialog-description"
                             tabIndex={-1}
@@ -696,7 +756,7 @@ function CreateElection(props) {
                         </DialogContentText>
                     </DialogContent>
                 </div>
-            </Dialog>
+            </Dialog >
             <Dialog open={removeVoterDialogOpen} onClose={() => setRemoveVoterDialogOpen(false)}>
                 <DialogTitle>Ta bort valkod</DialogTitle>
                 <DialogContent>
@@ -779,6 +839,42 @@ function CreateElection(props) {
                     <Button onClick={sendSingleEmail}>Skicka</Button>
                 </DialogActions>
             </Dialog>
+            <Dialog open={wixDialogOpen} onClose={() => setWixDialogOpen(false)}>
+                <DialogTitle>Wix</DialogTitle>
+                <DialogContent>
+                    <div style={{ marginBottom: '10px' }}>Ange url till eventet i Wix, till exempel: <br></br> https://www.isek.se/event-details/ht-mote-2023</div>
+                    <TextField
+                        style={{ marginTop: '10px' }}
+                        label="URL"
+                        value={eventUrl}
+                        onChange={(e) => setEventUrl(e.target.value)}
+                        fullWidth
+                    />
+                    <Button onClick={changeWixUrlSlug}>Spara</Button>
+
+                    <div style={{ marginTop: '30px', fontWeight: 'bold' }}>Funktioner:</div>
+                    <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#70002D', marginTop: '15px', fontWeight: 'bold' }} onClick={refreshFromWix}>
+
+                        <RefreshIcon
+                            style={{
+                                cursor: 'pointer',
+                                textSize: '10px'
+                            }}
+                        />
+                        <div>Uppdatera gästlista från Wix</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#70002D', marginTop: '15px', fontWeight: 'bold' }} onClick={removeCheckInWix}>
+
+                        <DeleteOutlineIcon
+                            style={{
+                                cursor: 'pointer',
+                                textSize: '10px'
+                            }}
+                        />
+                        <div>Ta bort check-ins från Wix</div>
+                    </div>
+                </DialogContent>
+            </Dialog>
             <div className='frame'>
                 <h1 style={{ color: '#70002D' }}>Admin</h1>
                 <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'center' }}>
@@ -799,7 +895,7 @@ function CreateElection(props) {
 
             </div>
             <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} password={password} />
-        </div>
+        </div >
     );
 };
 

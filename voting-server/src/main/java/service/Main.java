@@ -85,5 +85,8 @@ public class Main {
 
         get("/get-all-voters/:password", (req, res) -> s.getAllVoters(req, res, req.params(":password")));
 
+        get("/reload-all-voters/:password", (req, res) -> s.reloadGuestList(req, res, req.params(":password")));
+
+
     }
 }

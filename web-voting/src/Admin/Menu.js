@@ -55,6 +55,12 @@ const Menu = (props) => {
               </ListItemButton>
             </ListItem>
             <Divider style={{ background: 'white' }} />
+            <ListItem key="wix-dialog" disablePadding>
+              <ListItemButton onClick={() => { props.menuFunctions.setWixDialogOpen(true); handleMenuItemClick(); }}>
+                <ListItemText primary="Wix" />
+              </ListItemButton>
+            </ListItem>
+            <Divider style={{ background: 'white' }} />
             <ListItem key="send-voting-codes" disablePadding>
               <ListItemButton onClick={() => { props.menuFunctions.setSendAllRemailsDialogOpen(true); handleMenuItemClick(); }}>
                 <ListItemText primary="Skicka valkoder" />
