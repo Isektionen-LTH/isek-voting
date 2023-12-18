@@ -702,7 +702,8 @@ public class Service {
   public String reloadGuestList(Request req, Response res, String params) {
     if (params.equals(password)) {
       //Reload guests
-
+      WixHandler w = new WixHandler(); 
+      w.getDataFromWix(); 
 
       res.status(200);
       return "Success"; 
