@@ -228,8 +228,6 @@ public class ElectionPart {
         while (winners.size() < winnercount && allVotes.size() > 0) {
             firstRanks.clear();
 
-            System.out.println(allVotes);
-
             // Check if there are enough unique candidates to fill empty winner positions.
             // If not, break loop and rest of candidates are winners.
             Set<String> uniqueCandidates = new HashSet<>();
