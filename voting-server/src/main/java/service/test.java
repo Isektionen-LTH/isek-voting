@@ -3,7 +3,7 @@ package service;
 public class test {
     public static void main(String[] args) {
         ElectionPart electionPart = new ElectionPart();
-        electionPart.winnercount = 4;  // Set the number of winners to 2
+        electionPart.winnercount = 2;  // Set the number of winners to 2
 
         // Set up candidates
         String[] candidates = {"A", "B", "C", "D"};
@@ -12,11 +12,11 @@ public class test {
         // Add person votes
         IRVvote vote1 = new IRVvote();
         vote1.voterId = "Voter 1";
-        vote1.vote = new String[]{"A", "C", "D"};
+        vote1.vote = new String[]{"A", "C"};
 
         IRVvote vote2 = new IRVvote();
         vote2.voterId = "Voter 2";
-        vote2.vote = new String[]{"A", "B"};
+        vote2.vote = new String[]{"B", "A", "D"};
 
         IRVvote vote3 = new IRVvote();
         vote3.voterId = "Voter 3";
@@ -28,7 +28,7 @@ public class test {
 
         IRVvote vote5 = new IRVvote();
         vote5.voterId = "Voter 5";
-        vote5.vote = new String[]{"B", "C", "D"};
+        vote5.vote = new String[]{"D", "C", "D"};
 
         electionPart.addPersonVote(vote1, 2);
         electionPart.addPersonVote(vote2, 2);
@@ -37,6 +37,7 @@ public class test {
         electionPart.addPersonVote(vote5, 5);
 
 
+        electionPart.determinePersonWinner();
 
         // Determine the winners
         System.out.println("Winner: " + electionPart.winner);

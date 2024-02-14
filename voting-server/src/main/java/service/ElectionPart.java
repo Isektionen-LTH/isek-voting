@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * A class representing a part of election (omröstning/delval).
@@ -221,10 +223,24 @@ public class ElectionPart {
             tieBreakerOriginalFirstRanks.put(firstChoice, firstRanks.getOrDefault(firstChoice, 0) + 1);
         }
 
+
         // Main loop
         while (winners.size() < winnercount && allVotes.size() > 0) {
-
             firstRanks.clear();
+
+            System.out.println(allVotes);
+
+            // Check if there are enough unique candidates to fill empty winner positions.
+            // If not, break loop and rest of candidates are winners.
+            Set<String> uniqueCandidates = new HashSet<>();
+            allVotes.forEach(uniqueCandidates::addAll);
+
+            if (uniqueCandidates.size() <= (winnercount - winners.size())) {
+                // Automatically declare unique candidates as winners
+                uniqueCandidates.stream()
+                        .forEach(winners::add);
+                break; // Exit the main loop since we have enough winners
+            }
 
             // Set firstRanks values
             for (ArrayList<String> rankings : allVotes) {
@@ -254,7 +270,6 @@ public class ElectionPart {
             if (!winnerFound) {
                 int minCount = Integer.MAX_VALUE;
                 ArrayList<String> candidatesWithLeastVotes = new ArrayList<>();
-
                 // Initializes minCount value:
                 for (Map.Entry<String, Integer> candidateSet : firstRanks.entrySet()) {
                     if (candidateSet.getValue() <= minCount) {
@@ -269,7 +284,6 @@ public class ElectionPart {
                         minCount = candidateSet.getValue();
                     }
                 }
-
                 // No ties
                 if (candidatesWithLeastVotes.size() == 1) {
                     // Remove least votes candidate from firstRanks and allVotes
@@ -321,7 +335,6 @@ public class ElectionPart {
                         // Least is removed.
                         if (atLeastOneIsInOriginalVotes) {
                             Collections.shuffle(candidatesWithLeastVotes); // Randomize the candidate list
-
                             for (String candidate : candidatesWithLeastVotes) {
                                 if (tieBreakerOriginalFirstRanks.containsKey(candidate) && tieBreakerOriginalFirstRanks
                                         .get(candidate) < leastAmountOfOriginalFirstVotes) {
@@ -340,6 +353,7 @@ public class ElectionPart {
                 }
 
             }
+
         }
         winner = String.join(", ", winners);
         return winner;
