@@ -11,7 +11,7 @@ function AdminLogin() {
 
     function handleSubmit(event) {
         event.preventDefault();
-        let url = 'http://localhost:8080/validate-admin/' + fieldInput;
+        let url = 'https://vote-server.isek.se/validate-admin/' + fieldInput;
         fetch(url)
             .then((response) => {
                 if (response.ok) {
