@@ -21,7 +21,7 @@ Förbättrinsmöjligheter:
 - Refaktorisera kod... 
 
 En hel del kommer från kurserna "Agil programvaruutveckling" (server) och "Webbutveckling" (client), samt programmeringskurserna. Däremot är det en hel del som inte kurserna går igenom, där hänvisar jag till Google och ChatGPT :) 
-Läs gärna igenom testamentet på WebbIs drive!!! 
+Läs gärna igenom testamentet på WebbIs drive samt "Guide för WebbI" i samma mapp!!! 
 
 Clienten är byggd med React och ligger på Google Firebase (WebbIs konto) : vote.isek.se 
 Servern ligger och kör i en dockercontainer på DigitalOcean : vote-server.isek.se 
