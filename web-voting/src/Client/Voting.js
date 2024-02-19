@@ -7,7 +7,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 function Voting(props) {
-    const host = 'https://vote-server.isek.se';
+    const host = 'http://localhost:8080';
     const [hasVoted, setHasVoted] = useState(false);
     const [currentElectionId, setElectionId] = useState(props.current.id);
     const [personVotes, setPersonVotes] = useState([]);
@@ -18,7 +18,6 @@ function Voting(props) {
     const handleCandidateSelection = (event, candidateIndex) => {
         const selectedCandidate = event.target.value;
         const updatedVotes = [...personVotes];
-        console.log("CandidateIndex: " + candidateIndex + ", SelectedCandidate: " + selectedCandidate);
 
         if (selectedCandidate === 'Vakant') {
             updatedVotes[candidateIndex] = 'Vakant';
@@ -35,7 +34,6 @@ function Voting(props) {
             }
 
             updatedVotes[candidateIndex] = selectedCandidate;
-            console.log(updatedVotes);
         }
 
         setPersonVotes(updatedVotes);
@@ -81,12 +79,31 @@ function Voting(props) {
                 vote: props.current.alternative2,
             });
             castMultipleVote(voteData);
+        } else if (event.target.value === 'BlanktJaNej') {
+            console.log("BlanktJaNej");
+            const voteData = JSON.stringify({
+                voterId: props.voterId,
+                electionPart: props.current.id.toString(),
+                voteType: 'Ja/Nej',
+                vote: "Blankt",
+            });
+            castDecisionVote(voteData);
+        } else if (event.target.value === 'BlanktFlerval') {
+            console.log("BlanktFlerval");
+            const voteData = JSON.stringify({
+                voterId: props.voterId,
+                electionPart: props.current.id.toString(),
+                voteType: 'Flerval',
+                vote: "Blankt",
+            });
+            castMultipleVote(voteData);
+        } else {
+            console.log('Error');
         }
     }
 
     function castDecisionVote(voteData) {
         let url = host + '/cast-decision-vote/' + props.voterId;
-        console.log(voteData);
         fetch(url, {
             method: 'POST',
             headers: {
@@ -110,7 +127,6 @@ function Voting(props) {
     }
 
     function castPersonVote(voteData) {
-        console.log(voteData);
         let url = host + '/cast-person-vote/' + props.voterId;
         fetch(url, {
             method: 'POST',
@@ -207,11 +223,13 @@ function Voting(props) {
                     <Button variant='contained' value='Nej' className='choiceButton' onClick={buttonClick}>
                         Nej
                     </Button>
+                    <Button variant='contained' value='BlanktJaNej' className='choiceButtonBlankt' onClick={buttonClick}>
+                        Blankt
+                    </Button>
                 </div>
             </div>
         );
     } else if (props.current.type === 'Flerval') {
-        console.log(props.current);
         return (
             <div className='main'>
                 <Snackbar
@@ -231,6 +249,9 @@ function Voting(props) {
                     </Button>
                     <Button variant='contained' value='alternative2' className='choiceButton2' onClick={buttonClick}>
                         {props.current.alternative2}
+                    </Button>
+                    <Button variant='contained' value='BlanktFlerval' className='choiceButton2Blankt' onClick={buttonClick}>
+                        Blankt
                     </Button>
                 </div>
             </div>

@@ -128,9 +128,9 @@ public class ElectionPart {
         for (DecisionVote decisionVote : decisionVotes.values()) {
             if (decisionVote.vote.equals("Ja")) {
                 yes++;
-            } else {
+            } else if (decisionVote.vote.equals("Nej")) {
                 no++;
-            }
+            } 
         }
 
         if (yes > no) {
@@ -162,7 +162,7 @@ public class ElectionPart {
         for (DecisionVote decisionVote : multipleVotes.values()) {
             if (decisionVote.vote.equals(alternative1)) {
                 alternative1Count++;
-            } else {
+            } else if (decisionVote.vote.equals(alternative2)){
                 alternative2Count++;
             }
         }

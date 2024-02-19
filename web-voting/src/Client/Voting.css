@@ -53,8 +53,25 @@
     font-size: 20px !important;
 }
 
+.choiceButtonBlankt {
+    background-color: #808080 !important;
+    margin-bottom: 20px !important;
+    width: 200px;
+    height: 50px;
+    font-size: 20px !important;
+}
+
 .choiceButton2 {
     background-color: #70002D !important;
+    margin-bottom: 20px !important;
+    font-size: 16px !important;
+    width: 100%;
+    height: 50px;
+    font-size: 20px !important;
+}
+
+.choiceButton2Blankt {
+    background-color: #808080 !important;
     margin-bottom: 20px !important;
     font-size: 16px !important;
     width: 100%;
