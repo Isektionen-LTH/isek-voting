@@ -34,7 +34,7 @@ export default function DataTable(props) {
         if (props.password) {
             setPassword(props.password);
             props.updateParentRows(rows);
-            getDataFromServer();
+            getInitialDataFromServer();
         }
         if (!longPollingGoing && password) {
             setGoing(true);
@@ -140,7 +140,7 @@ export default function DataTable(props) {
         setSelectedRowModel([]);
     };
 
-    /* function getDataFromServer() {
+    function getInitialDataFromServer() {
         let url = host + '/elections/getdata/' + props.password;
         fetch(url)
             .then((response) => response.json())
@@ -155,7 +155,7 @@ export default function DataTable(props) {
                     'Connection to server could not be established. \nCheck host and Voter ID.'
                 );
             });
-    } */
+    }
 
     function getDataFromServer() {
         let url = host + '/elections/getdata/' + props.password;
