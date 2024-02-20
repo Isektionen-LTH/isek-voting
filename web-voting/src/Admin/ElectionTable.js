@@ -22,7 +22,6 @@ export default function DataTable(props) {
     const [rows, setRows] = useState([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [newRow, setNewRow] = useState({});
-    const [selectedRowModel, setSelectedRowModel] = useState([]);
     const [open, setOpen] = useState(false); //Success message
     const [snackText, setText] = useState("");
     const [password, setPassword] = useState();
@@ -38,8 +37,6 @@ export default function DataTable(props) {
         }
         if (!longPollingGoing && password) {
             setGoing(true);
-            // Start long polling when the component mounts
-            //longPollingResults();
         }
         // eslint-disable-next-line
     }, [props.password, password, longPollingGoing]);
@@ -104,7 +101,7 @@ export default function DataTable(props) {
 
     const handleRemoveRow = () => {
         const updatedRows = rows.filter(
-            (row) => !selectedRowModel.includes(row.id.toString())
+            (row) => row.id.toString() !== props.currentId.toString()
         );
 
         // Redistribute ids for the remaining rows
@@ -136,8 +133,6 @@ export default function DataTable(props) {
                 console.log(error);
                 alert("Something went wrong...");
             });
-
-        setSelectedRowModel([]);
     };
 
     function getInitialDataFromServer() {
@@ -163,11 +158,10 @@ export default function DataTable(props) {
             .then((response) => response.json())
             .then((data) => {    
                 // Filter the data to get only the row with the currentId
-                const currentRowData = data.find(row => row.id === props.currentId);
-    
+                const currentRowData = data.find(row => row.id.toString() === props.currentId.toString());
                 // Update the state with the new data
-                setRows(rows.map(row => row.id === props.currentId ? currentRowData : row));
-                props.updateParentRows(rows.map(row => row.id === props.currentId ? currentRowData : row));
+                setRows(rows.map(row => row.id.toString() === props.currentId.toString() ? currentRowData : row));
+                props.updateParentRows(rows.map(row => row.id.toString() === props.currentId.toString() ? currentRowData : row));
             })
             .catch((error) => {
                 console.log(error);
@@ -199,7 +193,7 @@ export default function DataTable(props) {
                 <Button
                     variant="contained"
                     color="secondary"
-                    disabled={selectedRowModel.length === 0}
+                    disabled={props.currentId === 0 || props.electionRunning}
                     onClick={handleRemoveRow}
                     className='tableButtonGrid'
                 >
@@ -214,16 +208,9 @@ export default function DataTable(props) {
                     pageSize={5}
                     onRowClick={(params) => {
                         const selectedRowId = params.row.id.toString();
-                        if (selectedRowModel.includes(selectedRowId)) {
-                            setSelectedRowModel((prevSelectedRowModel) =>
-                                prevSelectedRowModel.filter((id) => id !== selectedRowId)
-                            );
-                        } else {
-                            setSelectedRowModel((prevSelectedRowModel) => [
-                                ...prevSelectedRowModel,
-                                selectedRowId,
-                            ]);
-                        }
+                        console.log(selectedRowId);
+                        props.setCurrentId(selectedRowId);
+                        props.setSelectedElection(selectedRowId);
                     }}
                     getRowClassName={(params) => {
                         if (params.row.id.toString() === props.currentId.toString()) {

@@ -152,49 +152,57 @@ function CreateElection(props) {
     };
 
     function updateCurrentId(id) {
-        let url = host + "/set-current-part/" + password;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: id
-        }).then(response => {
-            if (response.ok) {
-                if (id === 0) {
-                    setSeverity("success");
-                    setText("Omröstningen är avslutad");
+            let url = host + "/set-current-part/" + password;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: id
+            }).then(response => {
+                if (response.ok) {
+                    if (id === 0) {
+                        setSeverity("success");
+                        setText("Omröstningen är avslutad");
+                    } else {
+                        setSeverity("success");
+                        setText("Aktiv omröstning ändrad till " + id);
+                    }
+                    setOpen(true);
                 } else {
-                    setSeverity("success");
-                    setText("Aktiv omröstning ändrad till " + id);
+                    alert("Server error. Try again");
                 }
+            }).catch(error => {
+                setSeverity("error");
+                setText("Något gick fel, försök gärna igen.");
                 setOpen(true);
-            } else {
-                alert("Server error. Try again");
-            }
-        }).catch(error => {
-            setSeverity("error");
-            setText("Något gick fel, försök gärna igen.");
-            setOpen(true);
-        });
+            });
     }
 
 
     const startElection = (event) => {
         if (!electionRunning) {
             if (currentId === 0 || currentId === undefined || currentId > tableRows.length) {
-                setCurrentId(1);
-                updateCurrentId(1);
+                setSeverity('error');
+                setText("Ingen omröstning vald. Välj en omröstning att starta.");
+                setOpen(true);
             } else {
                 updateCurrentId(currentId);
+                setRunning(electionRunning => !electionRunning);
             }
         } else {
             updateCurrentId(0);
+            setRunning(electionRunning => !electionRunning);
         }
-        setRunning(electionRunning => !electionRunning);
     };
 
-    function nextElection(event) {
+    function setSelectedElection(id){
+        if (electionRunning){
+            updateCurrentId(id);
+        }
+    }
+
+    /* function nextElection(event) {
         if (currentId === undefined) {
             setCurrentId(1);
         }
@@ -215,7 +223,7 @@ function CreateElection(props) {
                 updateCurrentId(id);
             }
         }
-    }
+    } */
 
     function updateVoters(parsedData) {
         let url = host + "/elections/update-voters/" + password;
@@ -787,10 +795,10 @@ function CreateElection(props) {
                 </div>
                 {electionRunning === false && <Button variant="contained" className='startElection' onClick={startElection}>Starta röstning</Button>}
                 {electionRunning === true && <Button variant="contained" className='endElection' onClick={startElection}>Stoppa röstning</Button>}
-                {<h3>Välj aktiv omröstning:</h3>}
+                {/* {<h3>Välj aktiv omröstning:</h3>}
                 {<Button variant="contained" className='nextElection' onClick={nextElection}> Nästa omröstning</Button>}
                 {<Button variant="contained" className='previousElection' onClick={previousElection}>Tillbaka</Button>}
-
+ */}
                 <Snackbar open={open} autoHideDuration={5000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'left', }}>
                     <Alert onClose={handleClose} severity={severity} sx={{ width: '100%' }}>
                         {snackText}
@@ -798,7 +806,7 @@ function CreateElection(props) {
                 </Snackbar>
 
             </div>
-            <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} password={password} />
+            <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} setCurrentId={setCurrentId} password={password} setSelectedElection={setSelectedElection} electionRunning={electionRunning}/>
         </div>
     );
 };
