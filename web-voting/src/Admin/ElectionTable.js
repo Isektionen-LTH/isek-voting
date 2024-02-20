@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 const columns = [
     { field: 'id', headerName: 'ID', width: 10, editable: false },
@@ -98,6 +100,47 @@ export default function DataTable(props) {
         }
     };
 
+    const handleMoveRow = (direction) => {
+        const currentIndex = parseInt(props.currentId) - 1;
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+        if (newIndex < 0 || newIndex >= rows.length) {
+            return; // No need to move if the new index is out of bounds
+        }
+
+        const updatedRows = [...rows];
+        const movedRow = updatedRows.splice(currentIndex, 1)[0];
+        updatedRows.splice(newIndex, 0, movedRow);
+
+        const redistributedRows = updatedRows.map((row, index) => ({
+            ...row,
+            id: (index + 1).toString(),
+        }));
+
+        setRows(redistributedRows);
+        props.updateParentRows(redistributedRows);
+        props.setCurrentId(newIndex + 1);
+
+        const url = host + "/elections/update-electionparts/" + password;
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(redistributedRows),
+        })
+        .then((response) => {
+            if (response.ok) {
+                // Handle success
+            } else {
+                alert("Could not update server data. Try again.");
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            alert("Something went wrong...");
+        });
+    }
 
     const handleRemoveRow = () => {
         const updatedRows = rows.filter(
@@ -140,7 +183,7 @@ export default function DataTable(props) {
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
-                console.log(JSON.stringify(data));  
+                console.log(JSON.stringify(data));
                 setRows(data);
                 props.updateParentRows(data);
             })
@@ -156,7 +199,7 @@ export default function DataTable(props) {
         let url = host + '/elections/getdata/' + props.password;
         fetch(url)
             .then((response) => response.json())
-            .then((data) => {    
+            .then((data) => {
                 // Filter the data to get only the row with the currentId
                 const currentRowData = data.find(row => row.id.toString() === props.currentId.toString());
                 // Update the state with the new data
@@ -198,6 +241,24 @@ export default function DataTable(props) {
                     className='tableButtonGrid'
                 >
                     Ta bort omröstning
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className='tableButtonGrid'
+                    disabled={props.currentId === 0 || props.electionRunning}
+                    onClick={() => handleMoveRow('up')}
+                >
+                    <ArrowUpwardIcon />
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className='tableButtonGrid'
+                    disabled={props.currentId === 0 || props.electionRunning}
+                    onClick={() => handleMoveRow('down')}
+                >
+                    <ArrowDownwardIcon />
                 </Button>
                 <Button variant="contained" color="primary" className='getResultsButton' onClick={getDataFromServer}>
                     Hämta resultat från servern
