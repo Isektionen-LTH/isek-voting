@@ -140,13 +140,34 @@ export default function DataTable(props) {
         setSelectedRowModel([]);
     };
 
-    function getDataFromServer() {
+    /* function getDataFromServer() {
         let url = host + '/elections/getdata/' + props.password;
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
+                console.log(JSON.stringify(data));  
                 setRows(data);
                 props.updateParentRows(data);
+            })
+            .catch((error) => {
+                console.log(error);
+                alert(
+                    'Connection to server could not be established. \nCheck host and Voter ID.'
+                );
+            });
+    } */
+
+    function getDataFromServer() {
+        let url = host + '/elections/getdata/' + props.password;
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {    
+                // Filter the data to get only the row with the currentId
+                const currentRowData = data.find(row => row.id === props.currentId);
+    
+                // Update the state with the new data
+                setRows(rows.map(row => row.id === props.currentId ? currentRowData : row));
+                props.updateParentRows(rows.map(row => row.id === props.currentId ? currentRowData : row));
             })
             .catch((error) => {
                 console.log(error);
