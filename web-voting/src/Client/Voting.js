@@ -7,7 +7,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 function Voting(props) {
-    const host = 'http://localhost:8080';
+    const host = 'http://192.168.32.3:8080';
     const [hasVoted, setHasVoted] = useState(false);
     const [currentElectionId, setElectionId] = useState(props.current.id);
     const [personVotes, setPersonVotes] = useState([]);
@@ -247,10 +247,10 @@ function Voting(props) {
                     <Button variant='contained' value='alternative1' className='choiceButton2' onClick={buttonClick}>
                         {props.current.alternative1}
                     </Button>
-                    <Button variant='contained' value='alternative2' className='choiceButton2' onClick={buttonClick}>
+                    <Button variant='contained' value='alternative2' className='choiceButton2' onClick={buttonClick} >
                         {props.current.alternative2}
                     </Button>
-                    <Button variant='contained' value='BlanktFlerval' className='choiceButton2Blankt' onClick={buttonClick}>
+                    <Button variant='contained' value='BlanktFlerval' className='choiceButton2Blankt' onClick={buttonClick} >
                         Blankt
                     </Button>
                 </div>

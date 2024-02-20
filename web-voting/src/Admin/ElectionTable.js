@@ -265,7 +265,10 @@ export default function DataTable(props) {
                         )}
                         {selectedType === 'Flerval' && (
                             <>
-                                <InputLabel htmlFor="alternative-1">Alternativ 1</InputLabel>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <InputLabel htmlFor="alternative-1">Alternativ 1</InputLabel>
+                                    <div className='CharCount' style={{ marginLeft: 'auto' }}>{(newRow.alternative1 || '').length}/300 characters</div> {/* Add character count */}
+                                </div>
                                 <TextField
                                     required
                                     sx={{ marginBottom: '16px' }}
@@ -273,8 +276,12 @@ export default function DataTable(props) {
                                     fullWidth
                                     value={newRow.alternative1 || ''}
                                     onChange={(e) => { handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value) }}
+                                    inputProps={{ maxLength: 300 }} // Add maxLength attribute
                                 />
-                                <InputLabel htmlFor="alternative-2">Alternativ 2</InputLabel>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <InputLabel htmlFor="alternative-2">Alternativ 2</InputLabel>
+                                    <div className='CharCount' style={{ marginLeft: 'auto' }}>{(newRow.alternative2 || '').length}/300 characters</div> {/* Add character count */}
+                                </div>
                                 <TextField
                                     required
                                     sx={{ marginBottom: '16px' }}
@@ -282,6 +289,7 @@ export default function DataTable(props) {
                                     fullWidth
                                     value={newRow.alternative2 || ''}
                                     onChange={(e) => { handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value) }}
+                                    inputProps={{ maxLength: 300 }} // Add maxLength attribute
                                 />
                             </>
                         )}

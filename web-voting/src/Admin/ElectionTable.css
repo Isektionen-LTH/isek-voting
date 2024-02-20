@@ -26,4 +26,9 @@
     bottom: 10px;
     position: relative;
   }
+
+.CharCount {
+    color: grey;
+    font-size: 13px;
+}
   
