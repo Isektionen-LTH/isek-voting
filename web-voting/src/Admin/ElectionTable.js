@@ -226,7 +226,7 @@ export default function DataTable(props) {
                     className='tableButtonGrid'
                     disabled={props.currentId === 0 || props.electionRunning}
                     onClick={() => handleMoveRow('up')}
-                    title="Flytta vald omröstning ned ett steg"
+                    title="Flytta vald omröstning ned upp steg"
 
                 >
                     <ArrowUpwardIcon />
