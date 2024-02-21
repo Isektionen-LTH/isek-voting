@@ -45,7 +45,7 @@ public class Main {
         //All endpoints explained in service class. 
         get("/health", (req, res) -> s.health(req, res));
 
-        get("/validate-voter/:voterId", (req, res) -> s.validateVoter(req, res, req.params(":voterId")));
+        get("/validate-voter", (req, res) -> s.validateVoter(req, res));
 
         get("/validate-admin", (req, res) -> s.validateAdmin(req, res));
 
@@ -61,11 +61,11 @@ public class Main {
 
         get("/get-current-part", (req, res) -> s.getCurrentPart(req, res));
 
-        post("/cast-decision-vote/:voterId", (req, res) -> s.castDecisionVote(req, res, req.params(":voterId")));
+        post("/cast-decision-vote", (req, res) -> s.castDecisionVote(req, res));
 
-        post("/cast-person-vote/:voterId", (req, res) -> s.castPersonVote(req, res, req.params(":voterId")));
+        post("/cast-person-vote", (req, res) -> s.castPersonVote(req, res));
 
-        post("/cast-multiple-vote/:voterId", (req, res) -> s.castMultipleVote(req, res, req.params(":voterId")));
+        post("/cast-multiple-vote", (req, res) -> s.castMultipleVote(req, res));
 
         post("/elections/add-voter", (req, res) -> s.addSingleVoter(req, res));
 
@@ -77,7 +77,7 @@ public class Main {
 
         post("/update-password", (req, res) -> s.updatePassword(req, res));
 
-        get("/long-polling-part/:voterId", (req, res) -> s.longPollingPart(req, res, req.params(":voterId"))); 
+        get("/long-polling-part", (req, res) -> s.longPollingPart(req, res)); 
 
         get("/long-polling-results", (req, res) -> s.longPollingResults(req, res)); 
         

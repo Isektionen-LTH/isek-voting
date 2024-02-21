@@ -80,7 +80,6 @@ function Voting(props) {
             });
             castMultipleVote(voteData);
         } else if (event.target.value === 'BlanktJaNej') {
-            console.log("BlanktJaNej");
             const voteData = JSON.stringify({
                 voterId: props.voterId,
                 electionPart: props.current.id.toString(),
@@ -89,7 +88,6 @@ function Voting(props) {
             });
             castDecisionVote(voteData);
         } else if (event.target.value === 'BlanktFlerval') {
-            console.log("BlanktFlerval");
             const voteData = JSON.stringify({
                 voterId: props.voterId,
                 electionPart: props.current.id.toString(),
@@ -103,11 +101,12 @@ function Voting(props) {
     }
 
     function castDecisionVote(voteData) {
-        let url = host + '/cast-decision-vote/' + props.voterId;
+        let url = host + '/cast-decision-vote';
         fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'voterId': props.voterId
             },
             body: voteData,
         })
@@ -127,11 +126,12 @@ function Voting(props) {
     }
 
     function castPersonVote(voteData) {
-        let url = host + '/cast-person-vote/' + props.voterId;
+        let url = host + '/cast-person-vote';
         fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'voterId': props.voterId
             },
             body: voteData,
         })
@@ -152,11 +152,12 @@ function Voting(props) {
     }
 
     function castMultipleVote(voteData) {
-        let url = host + '/cast-multiple-vote/' + props.voterId;
+        let url = host + '/cast-multiple-vote';
         fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'voterId': props.voterId
             },
             body: voteData,
         })

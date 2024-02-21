@@ -6,6 +6,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 import java.util.ArrayList;
 
+
 /**
  * MailService which handles all emails.
  */

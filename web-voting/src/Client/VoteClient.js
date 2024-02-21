@@ -17,8 +17,12 @@ function VoteClient(params) {
 
 
     const longPolling = useCallback(() => {
-        let url = host + '/long-polling-part/' + voterId;
-        fetch(url)
+        let url = host + '/long-polling-part';
+        fetch(url, {
+            headers: {
+                voterId: voterId
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
                 if (data === "Omröstning saknas") {
@@ -57,8 +61,12 @@ function VoteClient(params) {
     }
 
     function validateVoter(id) {
-        let url = host + '/validate-voter/' + id;
-        fetch(url)
+        let url = host + '/validate-voter';
+        fetch(url, {
+            headers: {
+                voterId: id
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
                 if (data === "No voter with that id") {

@@ -300,67 +300,74 @@ public class Service {
    * @param res The response object.
    * @return JSON representation of data.
    */
-  public String longPollingPart(Request req, Response res, String params) {
-    System.out.println("Voter connection established, " + Thread.activeCount() + "/1000");
+  public String longPollingPart(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      System.out.println("Voter connection established, " + Thread.activeCount() + "/1000");
 
-    Session session = req.session(true);
-    String lastElectionPart = session.attribute("lastElectionPart");
+      Session session = req.session(true);
+      String lastElectionPart = session.attribute("lastElectionPart");
 
-    if (lastElectionPart == null) {
+      if (lastElectionPart == null) {
+        session.attribute("lastElectionPart", currentElectionPart);
+        lastElectionPart = currentElectionPart;
+      }
+
+      long startTime = System.currentTimeMillis();
+      long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+      while (currentElectionPart.equals(lastElectionPart)) {
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        if (elapsedTime >= timeout) {
+          // Timeout reached, end the connection
+          System.out.println("Client connection timed out.");
+          res.status(200);
+          res.body(null);
+          return null;
+        } else if (!election.containsVoterWithId(voterId)) {
+          res.status(200);
+          res.body(gson.toJson("No voter with that id"));
+          return gson.toJson("No voter with that id");
+        }
+
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+
       session.attribute("lastElectionPart", currentElectionPart);
-      lastElectionPart = currentElectionPart;
-    }
 
-    long startTime = System.currentTimeMillis();
-    long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-    while (currentElectionPart.equals(lastElectionPart)) {
-      long elapsedTime = System.currentTimeMillis() - startTime;
-      if (elapsedTime >= timeout) {
-        // Timeout reached, end the connection
-        System.out.println("Client connection timed out.");
-        res.status(200);
-        res.body(null);
-        return null;
-      } else if (!election.containsVoterWithId(params)) {
-        res.status(200);
-        res.body(gson.toJson("No voter with that id"));
-        return gson.toJson("No voter with that id");
+      // IMPORTANT: return whole electionPart data! REMOVE VOTE DATA!
+      for (ElectionPart p : election.electionParts) {
+        if (p.id == Integer.parseInt(currentElectionPart)) {
+          res.status(200);
+          JsonObject jsonObject = gson.toJsonTree(p).getAsJsonObject();
+          jsonObject.remove("winner");
+          jsonObject.remove("winnercount");
+          jsonObject.remove("votecount");
+          jsonObject.remove("voterSize");
+          jsonObject.remove("voteprogress");
+          jsonObject.remove("vote");
+          jsonObject.remove("decisionVotes");
+          jsonObject.remove("multipleVotes");
+          jsonObject.remove("personVotes");
+          jsonObject.remove("tieBreakerId");
+          String data = jsonObject.toString();
+          res.body(data);
+          return data;
+        }
       }
 
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      res.status(204);
+      res.body(gson.toJson("Omröstning saknas"));
+      return gson.toJson("Omröstning saknas");
+    } else {
+      res.status(403);
+      res.body(null);
+      return null;
     }
-
-    session.attribute("lastElectionPart", currentElectionPart);
-
-    // IMPORTANT: return whole electionPart data! REMOVE VOTE DATA!
-    for (ElectionPart p : election.electionParts) {
-      if (p.id == Integer.parseInt(currentElectionPart)) {
-        res.status(200);
-        JsonObject jsonObject = gson.toJsonTree(p).getAsJsonObject();
-        jsonObject.remove("winner");
-        jsonObject.remove("winnercount");
-        jsonObject.remove("votecount");
-        jsonObject.remove("voterSize");
-        jsonObject.remove("voteprogress");
-        jsonObject.remove("vote");
-        jsonObject.remove("decisionVotes");
-        jsonObject.remove("multipleVotes");
-        jsonObject.remove("personVotes");
-        jsonObject.remove("tieBreakerId");
-        String data = jsonObject.toString();
-        res.body(data);
-        return data;
-      }
-    }
-
-    res.status(204);
-    res.body(gson.toJson("Omröstning saknas"));
-    return gson.toJson("Omröstning saknas");
   }
 
   /**
@@ -472,12 +479,15 @@ public class Service {
    * @param params voterId
    * @return success message.
    */
-  public String validateVoter(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) {
-        res.status(200);
-        res.body(v.name);
-        return gson.toJson(v.name);
+  public String validateVoter(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) {
+          res.status(200);
+          res.body(v.name);
+          return gson.toJson(v.name);
+        }
       }
     }
     res.status(203);
@@ -493,17 +503,20 @@ public class Service {
    * @param params voterId.
    * @return success message.
    */
-  public String castDecisionVote(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) {
-        DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
-        for (ElectionPart p : election.electionParts) {
-          // If part matches id and the voter has not yet voted.
-          if (p.id == Integer.parseInt(vote.electionPart)) {
-            p.addDecisionVote(vote, election.voters.size());
-            res.status(200);
-            res.body("Vote has been cast");
-            return gson.toJson("Vote has been cast");
+  public String castDecisionVote(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) {
+          DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
+          for (ElectionPart p : election.electionParts) {
+            // If part matches id and the voter has not yet voted.
+            if (p.id == Integer.parseInt(vote.electionPart)) {
+              p.addDecisionVote(vote, election.voters.size());
+              res.status(200);
+              res.body("Vote has been cast");
+              return gson.toJson("Vote has been cast");
+            }
           }
         }
       }
@@ -521,17 +534,20 @@ public class Service {
    * @param params voterId.
    * @return success message.
    */
-  public String castMultipleVote(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) {
-        DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
-        for (ElectionPart p : election.electionParts) {
-          // If part matches id and the voter has not yet voted.
-          if (p.id == Integer.parseInt(vote.electionPart)) {
-            p.addMultipleVote(vote, election.voters.size());
-            res.status(200);
-            res.body("Vote has been cast");
-            return gson.toJson("Vote has been cast");
+  public String castMultipleVote(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) {
+          DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
+          for (ElectionPart p : election.electionParts) {
+            // If part matches id and the voter has not yet voted.
+            if (p.id == Integer.parseInt(vote.electionPart)) {
+              p.addMultipleVote(vote, election.voters.size());
+              res.status(200);
+              res.body("Vote has been cast");
+              return gson.toJson("Vote has been cast");
+            }
           }
         }
       }
@@ -544,22 +560,24 @@ public class Service {
   /**
    * Casts vote for person election.
    * 
-   * @param req    The request object.
-   * @param res    The response object.
-   * @param params voterId.
+   * @param req The request object.
+   * @param res The response object.
    * @return success message.
    */
-  public String castPersonVote(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) { // Voter exists
-        IRVvote vote = gson.fromJson(req.body(), IRVvote.class);
-        for (ElectionPart p : election.electionParts) {
-          // If part matches id and the voter has not yet voted.
-          if (p.id == Integer.parseInt(vote.electionPart)) {
-            p.addPersonVote(vote, election.voters.size());
-            res.status(200);
-            res.body("Vote has been cast");
-            return gson.toJson("Vote has been cast");
+  public String castPersonVote(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) { // Voter exists
+          IRVvote vote = gson.fromJson(req.body(), IRVvote.class);
+          for (ElectionPart p : election.electionParts) {
+            // If part matches id and the voter has not yet voted.
+            if (p.id == Integer.parseInt(vote.electionPart)) {
+              p.addPersonVote(vote, election.voters.size());
+              res.status(200);
+              res.body("Vote has been cast");
+              return gson.toJson("Vote has been cast");
+            }
           }
         }
       }
