@@ -617,18 +617,6 @@ function CreateElection(props) {
                 aria-describedby="scroll-dialog-description"
             >
                 <div style={{ position: 'relative' }}>
-                    {/* <QuestionMarkIcon
-                        onClick={() => alert("\bInstruktioner: \n\nHär ser du samtliga aktiva valkoder. Du kan lägga till valkoder, ta bort eller ändra roll för deltagare. \n\nUnder \"Roll\" ser du den nuvarande rollen. För att ändra klickar du på knappen, vilket växlar mellan rollerna. Endast en kan vara utslag (mötesordförande) åt taget.")}
-                        style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '50px',
-                            cursor: 'pointer',
-                            fontSize: '20px',
-                            marginTop: '6px',
-
-                        }}
-                    /> */}
                     <CloseIcon
                         onClick={() => setShowAllVotersDialogOpen(false)}
                         style={{
@@ -717,6 +705,11 @@ function CreateElection(props) {
                                 <div>Inga aktiva valkoder</div>
                             )}
 
+                            {allVoters && (
+                                <div style={{ gridColumn: '1 / span 5', textAlign: 'left', fontWeight: 'bold', marginTop: '20px' }}>
+                                    Totalt antal valkoder: {allVoters.length || "0"}
+                                </div>
+                            )}
 
                         </DialogContentText>
                     </DialogContent>
