@@ -19,8 +19,16 @@
     background-color: rgba(0, 189, 113, 0.2) !important;
 }
 
+.highlighted-row-not-running {
+    background-color: rgba(50, 137, 198, 0.1) !important;
+}
+
+.other-rows {
+    background-color: rgba(0, 0, 0, 0) !important;
+}
+
 .mainDiv {
-    height: 450px;
+    height: 410px;
     width: 98%;
     margin-bottom: 90px;
     margin-left: 1%;

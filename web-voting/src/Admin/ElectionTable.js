@@ -2,11 +2,16 @@ import * as React from 'react';
 import './ElectionTable.css';
 import { DataGrid } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel } from '@mui/material';
+import { Button } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import AddElectionDialog from './AddElectionDialog';
+import EditElectionDialog from './EditElectionDialog';
 
 const columns = [
     { field: 'id', headerName: 'ID', width: 10, editable: false },
@@ -23,13 +28,10 @@ export default function DataTable(props) {
 
     const [rows, setRows] = useState([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [newRow, setNewRow] = useState({});
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [open, setOpen] = useState(false); //Success message
     const [snackText, setText] = useState("");
     const [password, setPassword] = useState();
-    const [selectedType, setSelectedType] = useState('');
-
-    const [longPollingGoing, setGoing] = useState(false);
 
     useEffect(() => {
         if (props.password) {
@@ -37,68 +39,17 @@ export default function DataTable(props) {
             props.updateParentRows(rows);
             getInitialDataFromServer();
         }
-        if (!longPollingGoing && password) {
-            setGoing(true);
-        }
+
         // eslint-disable-next-line
-    }, [props.password, password, longPollingGoing]);
+    }, [props.password, password]);
 
     const handleOpenAddDialog = () => {
         setIsAddDialogOpen(true);
     };
 
-    const handleCloseAddDialog = () => {
-        setIsAddDialogOpen(false);
-        setNewRow({});
-    };
-
-    const handleAddRow = () => {
-        const newRowWithId = { "id": rows.length + 1, ...newRow };
-        const updatedRows = [...rows, newRowWithId];
-        fetch(host + '/elections/update-electionparts/' + password, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedRows),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    setRows(updatedRows);
-                    props.updateParentRows(updatedRows);
-                    handleCloseAddDialog();
-                    setText("Omröstning tillagt i server.");
-                    setOpen(true);
-                } else {
-                    alert('Could not update server data. Try again.');
-                }
-            })
-            .catch((error) => {
-                console.log(error);
-                alert('Something went wrong...');
-            });
-    };
-
-
-    const handleNewRowChange = (field, value) => {
-        if (field === 'type') {
-            setSelectedType(value);
-            setNewRow((prevRow) => ({ ...prevRow, [field]: value }));
-        } else if (field === 'candidates') {
-            const candidatesArray = value.split(/,\s*/);
-            setNewRow((prevRow) => ({ ...prevRow, [field]: candidatesArray }));
-        } else if (field === 'multipleCandidates1') {
-            let currentArray = newRow.candidates || [];
-            currentArray[0] = value;
-            setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
-        } else if (field === 'multipleCandidates2') {
-            let currentArray = newRow.candidates || [];
-            currentArray[1] = value;
-            setNewRow((prevRow) => ({ ...prevRow, 'candidates': currentArray }));
-        } else {
-            setNewRow((prevRow) => ({ ...prevRow, [field]: value }));
-        }
-    };
+    const handleOpenEditDialog = () => {
+        setIsEditDialogOpen(true);
+    }
 
     const handleMoveRow = (direction) => {
         const currentIndex = parseInt(props.currentId) - 1;
@@ -120,6 +71,8 @@ export default function DataTable(props) {
         setRows(redistributedRows);
         props.updateParentRows(redistributedRows);
         props.setCurrentId(newIndex + 1);
+        props.setSelectedElection(newIndex + 1);
+
 
         const url = host + "/elections/update-electionparts/" + password;
         fetch(url, {
@@ -129,17 +82,17 @@ export default function DataTable(props) {
             },
             body: JSON.stringify(redistributedRows),
         })
-        .then((response) => {
-            if (response.ok) {
-                // Handle success
-            } else {
-                alert("Could not update server data. Try again.");
-            }
-        })
-        .catch((error) => {
-            console.log(error);
-            alert("Something went wrong...");
-        });
+            .then((response) => {
+                if (response.ok) {
+                    // Handle success
+                } else {
+                    alert("Could not update server data. Try again.");
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+                alert("Something went wrong...");
+            });
     }
 
     const handleRemoveRow = () => {
@@ -183,7 +136,6 @@ export default function DataTable(props) {
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
-                console.log(JSON.stringify(data));
                 setRows(data);
                 props.updateParentRows(data);
             })
@@ -230,8 +182,14 @@ export default function DataTable(props) {
                 </Alert>
             </Snackbar>
             <div className='mainDiv'>
-                <Button variant="contained" color="primary" onClick={handleOpenAddDialog} className='tableButtonGrid'>
-                    Skapa ny omröstning
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleOpenAddDialog}
+                    className='tableButtonGrid'
+                    title="Lägg till ny omröstning"
+                >
+                    <AddIcon />
                 </Button>
                 <Button
                     variant="contained"
@@ -239,8 +197,21 @@ export default function DataTable(props) {
                     disabled={props.currentId === 0 || props.electionRunning}
                     onClick={handleRemoveRow}
                     className='tableButtonGrid'
+                    title="Ta bort omröstning"
+
                 >
-                    Ta bort omröstning
+                    <DeleteIcon />
+                </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className='tableButtonGrid'
+                    disabled={props.currentId === 0 || props.electionRunning}
+                    onClick={handleOpenEditDialog}
+                    title="Redigera omröstning"
+
+                >
+                    <EditIcon />
                 </Button>
                 <Button
                     variant="contained"
@@ -248,6 +219,8 @@ export default function DataTable(props) {
                     className='tableButtonGrid'
                     disabled={props.currentId === 0 || props.electionRunning}
                     onClick={() => handleMoveRow('up')}
+                    title="Flytta vald omröstning ned ett steg"
+
                 >
                     <ArrowUpwardIcon />
                 </Button>
@@ -257,6 +230,8 @@ export default function DataTable(props) {
                     className='tableButtonGrid'
                     disabled={props.currentId === 0 || props.electionRunning}
                     onClick={() => handleMoveRow('down')}
+                    title="Flytta vald omröstning ned ett steg"
+
                 >
                     <ArrowDownwardIcon />
                 </Button>
@@ -269,105 +244,23 @@ export default function DataTable(props) {
                     pageSize={5}
                     onRowClick={(params) => {
                         const selectedRowId = params.row.id.toString();
-                        console.log(selectedRowId);
                         props.setCurrentId(selectedRowId);
                         props.setSelectedElection(selectedRowId);
                     }}
                     getRowClassName={(params) => {
-                        if (params.row.id.toString() === props.currentId.toString()) {
+                        if (params.row.id.toString() === props.currentId.toString() && props.electionRunning) {
                             return 'highlighted-row'; // Apply the CSS class for the highlighted row
+                        } else if (params.row.id.toString() === props.currentId.toString()){
+                            return 'highlighted-row-not-running'; 
+                        } else {
+                            return 'other-rows'; 
                         }
-                        return ''; // No additional CSS class
                     }}
 
                 />
+                <AddElectionDialog isAddDialogOpen={isAddDialogOpen} password={password} rows={rows} setRows={setRows} setOpen={setOpen} setText={setText} setIsAddDialogOpen={setIsAddDialogOpen} updateParentRows={props.updateParentRows} />
+                <EditElectionDialog isEditDialogOpen={isEditDialogOpen} password={password} rows={rows} setRows={setRows} setOpen={setOpen} setText={setText} setIsEditDialogOpen={setIsEditDialogOpen} updateParentRows={props.updateParentRows} currentId={props.currentId}/>
 
-                <Dialog open={isAddDialogOpen} onClose={handleCloseAddDialog} PaperProps={{ sx: { width: '500px' } }}>
-                    <DialogTitle>Lägg till omröstning</DialogTitle>
-                    <DialogContent>
-                        <InputLabel htmlFor="title-input">Titel</InputLabel>
-                        <TextField
-                            required
-                            sx={{ marginBottom: '16px' }}
-                            id="title-input"
-                            fullWidth
-                            value={newRow.title || ''}
-                            onChange={(e) => handleNewRowChange('title', e.target.value)}
-                        />
-                        <InputLabel htmlFor="typ-av-val-input">Typ av val</InputLabel>
-                        <Select
-                            required
-                            sx={{ marginBottom: '16px' }}
-                            labelId="typ-av-val-label"
-                            id="typ-av-val-input"
-                            fullWidth
-                            value={newRow.type || ''}
-                            onChange={(e) => handleNewRowChange('type', e.target.value)}
-                        >
-                            <MenuItem value="Personval">Personval</MenuItem>
-                            <MenuItem value="Ja/Nej">Ja/Nej</MenuItem>
-                            <MenuItem value="Flerval">Flerval</MenuItem>
-
-                        </Select>
-                        {selectedType === 'Personval' && (
-                            <>
-                                <InputLabel htmlFor="winnercount-input">Antal vinnare</InputLabel>
-                                <TextField
-                                    required
-                                    sx={{ marginBottom: '16px' }}
-                                    id="winnercount-input"
-                                    fullWidth
-                                    value={newRow.winnercount || ''}
-                                    onChange={(e) => handleNewRowChange('winnercount', e.target.value)}
-                                />
-                                <InputLabel htmlFor="candidates-input">Kandidater</InputLabel>
-                                <TextField
-                                    required
-                                    placeholder='Separera med komma'
-                                    sx={{ marginBottom: '16px' }}
-                                    id="candidates-input"
-                                    fullWidth
-                                    value={newRow.candidates || ''}
-                                    onChange={(e) => handleNewRowChange('candidates', e.target.value)}
-                                />
-                            </>
-                        )}
-                        {selectedType === 'Flerval' && (
-                            <>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <InputLabel htmlFor="alternative-1">Alternativ 1</InputLabel>
-                                    <div className='CharCount' style={{ marginLeft: 'auto' }}>{(newRow.alternative1 || '').length}/300 characters</div> {/* Add character count */}
-                                </div>
-                                <TextField
-                                    required
-                                    sx={{ marginBottom: '16px' }}
-                                    id="alternative-1"
-                                    fullWidth
-                                    value={newRow.alternative1 || ''}
-                                    onChange={(e) => { handleNewRowChange('alternative1', e.target.value); handleNewRowChange('multipleCandidates1', e.target.value) }}
-                                    inputProps={{ maxLength: 300 }} // Add maxLength attribute
-                                />
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <InputLabel htmlFor="alternative-2">Alternativ 2</InputLabel>
-                                    <div className='CharCount' style={{ marginLeft: 'auto' }}>{(newRow.alternative2 || '').length}/300 characters</div> {/* Add character count */}
-                                </div>
-                                <TextField
-                                    required
-                                    sx={{ marginBottom: '16px' }}
-                                    id="alternative-2"
-                                    fullWidth
-                                    value={newRow.alternative2 || ''}
-                                    onChange={(e) => { handleNewRowChange('alternative2', e.target.value); handleNewRowChange('multipleCandidates2', e.target.value) }}
-                                    inputProps={{ maxLength: 300 }} // Add maxLength attribute
-                                />
-                            </>
-                        )}
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseAddDialog}>Avbryt</Button>
-                        <Button onClick={handleAddRow}>Lägg till</Button>
-                    </DialogActions>
-                </Dialog>
             </div>
         </div>
     );

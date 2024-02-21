@@ -152,31 +152,31 @@ function CreateElection(props) {
     };
 
     function updateCurrentId(id) {
-            let url = host + "/set-current-part/" + password;
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: id
-            }).then(response => {
-                if (response.ok) {
-                    if (id === 0) {
-                        setSeverity("success");
-                        setText("Omröstningen är avslutad");
-                    } else {
-                        setSeverity("success");
-                        setText("Aktiv omröstning ändrad till " + id);
-                    }
-                    setOpen(true);
+        let url = host + "/set-current-part/" + password;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: id
+        }).then(response => {
+            if (response.ok) {
+                if (id === 0) {
+                    setSeverity("success");
+                    setText("Omröstningen är avslutad");
                 } else {
-                    alert("Server error. Try again");
+                    setSeverity("success");
+                    setText("Aktiv omröstning ändrad till " + id);
                 }
-            }).catch(error => {
-                setSeverity("error");
-                setText("Något gick fel, försök gärna igen.");
                 setOpen(true);
-            });
+            } else {
+                alert("Server error. Try again");
+            }
+        }).catch(error => {
+            setSeverity("error");
+            setText("Något gick fel, försök gärna igen.");
+            setOpen(true);
+        });
     }
 
 
@@ -196,8 +196,8 @@ function CreateElection(props) {
         }
     };
 
-    function setSelectedElection(id){
-        if (electionRunning){
+    function setSelectedElection(id) {
+        if (electionRunning) {
             updateCurrentId(id);
         }
     }
@@ -789,12 +789,10 @@ function CreateElection(props) {
             </Dialog>
             <div className='frame'>
                 <h1 style={{ color: '#70002D' }}>Admin</h1>
-                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'center' }}>
-                    <h5 style={{ marginRight: '10px', marginLeft: '55px' }}>Ladda upp gästlista</h5>
-                    <FileUploadComponent onFileUpload={handleFileUpload} />
-                </div>
+                <FileUploadComponent onFileUpload={handleFileUpload} />
                 {electionRunning === false && <Button variant="contained" className='startElection' onClick={startElection}>Starta röstning</Button>}
                 {electionRunning === true && <Button variant="contained" className='endElection' onClick={startElection}>Stoppa röstning</Button>}
+                <div style={{ marginBottom: '20px', fontSize: '12px' }}>Vald omröstning: {currentId || 'Ingen vald'} </div>
                 {/* {<h3>Välj aktiv omröstning:</h3>}
                 {<Button variant="contained" className='nextElection' onClick={nextElection}> Nästa omröstning</Button>}
                 {<Button variant="contained" className='previousElection' onClick={previousElection}>Tillbaka</Button>}
@@ -806,7 +804,7 @@ function CreateElection(props) {
                 </Snackbar>
 
             </div>
-            <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} setCurrentId={setCurrentId} password={password} setSelectedElection={setSelectedElection} electionRunning={electionRunning}/>
+            <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} setCurrentId={setCurrentId} password={password} setSelectedElection={setSelectedElection} electionRunning={electionRunning} />
         </div>
     );
 };
