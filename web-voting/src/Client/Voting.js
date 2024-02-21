@@ -7,7 +7,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
 function Voting(props) {
-    const host = 'http://192.168.32.3:8080';
+    const host = 'https://vote-server.isek.se';
     const [hasVoted, setHasVoted] = useState(false);
     const [currentElectionId, setElectionId] = useState(props.current.id);
     const [personVotes, setPersonVotes] = useState([]);

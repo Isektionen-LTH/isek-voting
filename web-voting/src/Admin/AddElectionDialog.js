@@ -6,7 +6,7 @@ function AddElectionDialog(props) {
     const [newRow, setNewRow] = useState({});
     const [selectedType, setSelectedType] = useState('');
 
-    const host = "http://localhost:8080";
+    const host = "https://vote-server.isek.se";
 
     const handleCloseAddDialog = () => {
         props.setIsAddDialogOpen(false);

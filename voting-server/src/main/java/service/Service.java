@@ -281,6 +281,9 @@ public class Service {
           jsonObject.remove("multipleVotes");
           jsonObject.remove("personVotes");
           jsonObject.remove("tieBreakerId");
+          jsonObject.remove("tieBreakerVote");
+          jsonObject.remove("tieBreakerIRVvote");
+
           String data = jsonObject.toString();
           res.body(data);
           return data;
@@ -354,6 +357,8 @@ public class Service {
           jsonObject.remove("multipleVotes");
           jsonObject.remove("personVotes");
           jsonObject.remove("tieBreakerId");
+          jsonObject.remove("tieBreakerVote");
+          jsonObject.remove("tieBreakerIRVvote");
           String data = jsonObject.toString();
           res.body(data);
           return data;

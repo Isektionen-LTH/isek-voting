@@ -6,7 +6,7 @@ function EditElectionDialog(props) {
     const [editedRow, setEditedRow] = useState({});
     const [selectedType, setSelectedType] = useState('');
 
-    const host = "http://localhost:8080";
+    const host = "https://vote-server.isek.se";
 
     useEffect(() => {
         // Pre-fill the dialog content based on the row with the currentId

@@ -18,7 +18,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { Close as CloseIcon } from '@mui/icons-material';
 
 function CreateElection(props) {
-    const host = "http://localhost:8080";
+    const host = "https://vote-server.isek.se";
 
     const [password, setPassword] = useState("");
     const [electionRunning, setRunning] = useState();

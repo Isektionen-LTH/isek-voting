@@ -11,7 +11,7 @@ function AdminLogin() {
 
     function handleSubmit(event) {
         event.preventDefault();
-        let url = 'http://localhost:8080/validate-admin';
+        let url = 'https://vote-server.isek.se/validate-admin';
         let headers = {
             'Authorization': 'Basic ' + btoa(fieldInput) // Use btoa to encode the password
         };
