@@ -6,6 +6,7 @@ import spark.Request;
 import spark.Response;
 import spark.Session;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 /**
@@ -264,10 +265,23 @@ public class Service {
       res.status(200);
       return currentElectionPart;
     } else {
+
+      // IMPORTANT: returns whole electionPart data! REMOVE VOTE DATA!
       for (ElectionPart p : election.electionParts) {
         if (p.id == Integer.parseInt(currentElectionPart)) {
           res.status(200);
-          String data = gson.toJson(p);
+          JsonObject jsonObject = gson.toJsonTree(p).getAsJsonObject();
+          jsonObject.remove("winner");
+          jsonObject.remove("winnercount");
+          jsonObject.remove("votecount");
+          jsonObject.remove("voterSize");
+          jsonObject.remove("voteprogress");
+          jsonObject.remove("vote");
+          jsonObject.remove("decisionVotes");
+          jsonObject.remove("multipleVotes");
+          jsonObject.remove("personVotes");
+          jsonObject.remove("tieBreakerId");
+          String data = jsonObject.toString();
           res.body(data);
           return data;
         }
@@ -323,10 +337,22 @@ public class Service {
 
     session.attribute("lastElectionPart", currentElectionPart);
 
+    // IMPORTANT: return whole electionPart data! REMOVE VOTE DATA!
     for (ElectionPart p : election.electionParts) {
       if (p.id == Integer.parseInt(currentElectionPart)) {
         res.status(200);
-        String data = gson.toJson(p);
+        JsonObject jsonObject = gson.toJsonTree(p).getAsJsonObject();
+        jsonObject.remove("winner");
+        jsonObject.remove("winnercount");
+        jsonObject.remove("votecount");
+        jsonObject.remove("voterSize");
+        jsonObject.remove("voteprogress");
+        jsonObject.remove("vote");
+        jsonObject.remove("decisionVotes");
+        jsonObject.remove("multipleVotes");
+        jsonObject.remove("personVotes");
+        jsonObject.remove("tieBreakerId");
+        String data = jsonObject.toString();
         res.body(data);
         return data;
       }
@@ -662,7 +688,8 @@ public class Service {
   }
 
   /**
-   * Removes all voters, including styr and tiebreaker. 
+   * Removes all voters, including styr and tiebreaker.
+   * 
    * @param req
    * @param res
    * @param params
@@ -682,7 +709,8 @@ public class Service {
   }
 
   /**
-   * Returns all voters. 
+   * Returns all voters.
+   * 
    * @param req
    * @param res
    * @param params
