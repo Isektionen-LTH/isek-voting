@@ -73,12 +73,12 @@ export default function DataTable(props) {
         props.setCurrentId(newIndex + 1);
         props.setSelectedElection(newIndex + 1);
 
-
-        const url = host + "/elections/update-electionparts/" + password;
+        const url = host + "/elections/update-electionparts";
         fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                'Authorization': 'Basic ' + btoa(props.password)
             },
             body: JSON.stringify(redistributedRows),
         })
@@ -109,11 +109,12 @@ export default function DataTable(props) {
         setRows(redistributedRows);
         props.updateParentRows(redistributedRows);
 
-        let url = host + "/elections/update-electionparts/" + password;
+        let url = host + "/elections/update-electionparts";
         fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                'Authorization': 'Basic ' + btoa(props.password)
             },
             body: JSON.stringify(redistributedRows),
         })
@@ -132,8 +133,11 @@ export default function DataTable(props) {
     };
 
     function getInitialDataFromServer() {
-        let url = host + '/elections/getdata/' + props.password;
-        fetch(url)
+        let url = host + '/elections/getdata';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(props.password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => response.json())
             .then((data) => {
                 setRows(data);
@@ -148,8 +152,11 @@ export default function DataTable(props) {
     }
 
     function getDataFromServer() {
-        let url = host + '/elections/getdata/' + props.password;
-        fetch(url)
+        let url = host + '/elections/getdata';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(props.password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => response.json())
             .then((data) => {
                 // Filter the data to get only the row with the currentId

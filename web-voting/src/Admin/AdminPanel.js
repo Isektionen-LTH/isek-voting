@@ -152,11 +152,12 @@ function CreateElection(props) {
     };
 
     function updateCurrentId(id) {
-        let url = host + "/set-current-part/" + password;
+        let url = host + "/set-current-part";
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: id
         }).then(response => {
@@ -226,11 +227,12 @@ function CreateElection(props) {
     } */
 
     function updateVoters(parsedData) {
-        let url = host + "/elections/update-voters/" + password;
+        let url = host + "/elections/update-voters";
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: parsedData
         }).then(response => {
@@ -250,11 +252,12 @@ function CreateElection(props) {
 
     function updateVoterRoles(voterId, newRole) {
         let data = { "voterId": voterId, "role": newRole };
-        let url = host + "/elections/update-roles/" + password;
+        let url = host + "/elections/update-roles";
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: JSON.stringify(data)
         }).then(response => {
@@ -279,11 +282,12 @@ function CreateElection(props) {
         } else {
             setAddVoterDialogOpen(false);
 
-            let url = host + "/elections/add-voter/" + password;
+            let url = host + "/elections/add-voter";
             fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(password)
                 },
                 body: JSON.stringify({ "name": newVoterName, "voterId": newVoterId, "email": newVoterEmail })
             }).then(response => {
@@ -313,11 +317,12 @@ function CreateElection(props) {
     function removeVoter(voterId) {
         return new Promise((resolve, reject) => {
             if (voterId) {
-                let url = host + "/elections/remove-voter/" + password;
+                let url = host + "/elections/remove-voter";
                 fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa(password)
                     },
                     body: JSON.stringify({ "voterId": voterId })
                 })
@@ -356,9 +361,12 @@ function CreateElection(props) {
     }
 
     function sendAllEmails() {
-        let url = host + '/send-emails/' + password;
+        let url = host + '/send-emails';
         setShowLoading(true);
-        fetch(url)
+        let headers = {
+            'Authorization': 'Basic ' + btoa(password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 if (response.ok) {
                     setSendAllRemailsDialogOpen(false);
@@ -385,13 +393,14 @@ function CreateElection(props) {
     }
 
     function sendSingleEmail() {
-        let url = host + "/send-single-email/" + password;
+        let url = host + "/send-single-email";
         setShowLoading(true);
 
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: email
         })
@@ -414,13 +423,14 @@ function CreateElection(props) {
     }
 
     function sendNewVoterEmail(newEmail) {
-        let url = host + "/send-single-email/" + password;
+        let url = host + "/send-single-email";
         setShowLoading(true);
 
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: newEmail
         })
@@ -446,11 +456,12 @@ function CreateElection(props) {
         setShowLoading(true);
         if (oldPassword === password) {
             setShowWrongPassword(false);
-            let url = host + "/update-password/" + password;
+            let url = host + "/update-password";
             fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(password)
                 },
                 body: newPassword
             }).then(response => {
@@ -480,8 +491,11 @@ function CreateElection(props) {
     }
 
     function removeAllVoters() {
-        let url = host + '/remove-all-voters/' + password;
-        fetch(url)
+        let url = host + '/remove-all-voters';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 if (response.ok) {
                     setRemoveAllDialogOpen(false);
@@ -501,8 +515,11 @@ function CreateElection(props) {
     }
 
     function getAllVoters() {
-        let url = host + '/get-all-voters/' + password;
-        fetch(url)
+        let url = host + '/get-all-voters/';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 return response.json();
             }).then((data) => {

@@ -8,6 +8,7 @@ import spark.Session;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import java.util.Base64;
 
 /**
  * Service class to handle all HTTP requests/responses.
@@ -49,9 +50,9 @@ public class Service {
    * @param params - admin password
    * @return - JSON representation of election data.
    */
-  public String getElectionData(Request req, Response res, String params) {
-    determineWinners();
-    if (params.equals(password)) {
+  public String getElectionData(Request req, Response res) {
+    if (authenticateAdmin(req)) {
+      determineWinners();
       var result = gson.toJson(election.electionParts);
       res.body(result);
       res.status(200);
@@ -80,11 +81,10 @@ public class Service {
    * @param params - admin password
    * @return - Success or error message.
    */
-  public String updateElectionVoters(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updateElectionVoters(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       try {
         String requestBody = req.body();
-        System.out.println(gson.toJson(req.body()));
 
         // Parse the JSON array of voters
         TypeToken<List<Voter>> token = new TypeToken<List<Voter>>() {
@@ -133,8 +133,8 @@ public class Service {
    * @param params Admin password.
    * @return Success or error message.
    */
-  public String updateRoles(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updateRoles(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       try {
         Voter voterToBeChanged = gson.fromJson(req.body(), Voter.class);
 
@@ -190,8 +190,8 @@ public class Service {
    * @param params admin password.
    * @return success message
    */
-  public String updateElectionParts(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updateElectionParts(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       try {
         String requestBody = req.body();
         Gson gson = new Gson();
@@ -240,8 +240,8 @@ public class Service {
    * @param params admin password
    * @return success message.
    */
-  public String setCurrentPart(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String setCurrentPart(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       currentElectionPart = req.body();
       res.status(200);
       return "Success";
@@ -370,8 +370,8 @@ public class Service {
    * @param res The response object.
    * @return JSON representation of data.
    */
-  public String longPollingResults(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String longPollingResults(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       long startTime = System.currentTimeMillis();
       long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       System.out.println("Admin connected, " + Thread.activeCount());
@@ -435,17 +435,33 @@ public class Service {
    * @param params admin password.
    * @return success message.
    */
-  public String validateAdmin(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String validateAdmin(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       res.status(200);
-      var result = gson.toJson("Log in successful");
+      String result = gson.toJson("Log in successful");
       res.body(result);
       return result;
     } else {
-      res.status(403);
+      res.status(401);
+      res.header("WWW-Authenticate", "Basic realm=\"Restricted\"");
       res.body("Invalid authentication");
       return gson.toJson("Invalid authentication");
     }
+  }
+
+  /**
+   * Helper method to authenticate admin using HTTP Basic Authentication.
+   * 
+   * @param req The request object.
+   * @return true if authentication is successful, false otherwise.
+   */
+  private boolean authenticateAdmin(Request req) {
+    String authorizationHeader = req.headers("Authorization");
+    if (authorizationHeader != null && authorizationHeader.startsWith("Basic ")) {
+      String credentials = new String(Base64.getDecoder().decode(authorizationHeader.substring(6)));
+      return credentials.equals(password);
+    }
+    return false;
   }
 
   /**
@@ -561,8 +577,8 @@ public class Service {
    * @param params admin password.
    * @return success message.
    */
-  public String addSingleVoter(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String addSingleVoter(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       Voter newVoter = gson.fromJson(req.body(), Voter.class);
       for (Voter v : election.voters) {
         if (v.voterId.equals(newVoter.voterId)) {
@@ -590,8 +606,8 @@ public class Service {
    * @param params admin password.
    * @return success message.
    */
-  public String removeSingleVoter(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String removeSingleVoter(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       Voter newVoter = gson.fromJson(req.body(), Voter.class);
       for (Voter v : election.voters) {
         if (v.voterId.equals(newVoter.voterId)) {
@@ -619,8 +635,8 @@ public class Service {
    * @param params admin password.
    * @return Amount of emails sent.
    */
-  public String sendEmails(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String sendEmails(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       mail.sendEmails(election.voters);
       res.body(gson.toJson(mail.getEmailSentCount()));
       res.status(200);
@@ -641,8 +657,8 @@ public class Service {
    * @param params admin password
    * @return success message.
    */
-  public String sendSingleEmail(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String sendSingleEmail(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       String email = req.body();
       Boolean foundVoter = false;
       for (Voter voter : election.voters) {
@@ -672,8 +688,8 @@ public class Service {
    * @param params current admin password.
    * @return success message.
    */
-  public String updatePassword(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updatePassword(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       String newPassword = req.body();
       password = newPassword;
       mail.resetPasswordEmail(newPassword);
@@ -695,8 +711,8 @@ public class Service {
    * @param params
    * @return
    */
-  public String removeAllVoters(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String removeAllVoters(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       election.voters = new ArrayList<>();
       res.body("Voters removed");
       res.status(200);
@@ -716,8 +732,9 @@ public class Service {
    * @param params
    * @return
    */
-  public String getAllVoters(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String getAllVoters(Request req, Response res) {
+    validateAdmin(req, res); // Add this line to validate admin before accessing voters
+    if (authenticateAdmin(req)) {
       res.status(200);
       return gson.toJson(election.voters);
     } else {

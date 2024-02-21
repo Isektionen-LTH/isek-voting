@@ -55,10 +55,11 @@ function EditElectionDialog(props) {
             return row;
         });
 
-        fetch(host + '/elections/update-electionparts/' + props.password, {
+        fetch(host + '/elections/update-electionparts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(props.password)
             },
             body: JSON.stringify(updatedRows),
         })

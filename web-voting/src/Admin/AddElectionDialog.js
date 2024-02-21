@@ -17,10 +17,11 @@ function AddElectionDialog(props) {
         const newRowWithId = { "id": props.rows.length + 1, ...newRow };
         console.log(JSON.stringify(newRowWithId));
         const updatedRows = [...props.rows, newRowWithId];
-        fetch(host + '/elections/update-electionparts/' + props.password, {
+        fetch(host + '/elections/update-electionparts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(props.password)
             },
             body: JSON.stringify(updatedRows),
         })
