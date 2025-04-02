@@ -19,7 +19,6 @@ function Voting(props) {
   useEffect(() => {
     if (props.current.candidates) {
       setShuffledCandidates(shuffleArray([...props.current.candidates]));
-      console.log(shuffleArray([...props.current.candidates]));
     }
   }, [props.current.candidates]);
 

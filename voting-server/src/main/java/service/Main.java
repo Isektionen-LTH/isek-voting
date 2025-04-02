@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         port(8080);
         Service s = new Service();
-        spark.Spark.threadPool(1000);
+        spark.Spark.threadPool(20000);
 
 
         before(

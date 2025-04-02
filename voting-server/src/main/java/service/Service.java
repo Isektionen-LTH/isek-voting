@@ -306,7 +306,7 @@ public class Service {
   public String longPollingPart(Request req, Response res) {
     String voterId = req.headers("voterId");
     if (voterId != null) {
-      System.out.println("Voter connection established, " + Thread.activeCount() + "/1000");
+      System.out.println("Voter connection established, " + Thread.activeCount() + "/20000");
 
       Session session = req.session(true);
       String lastElectionPart = session.attribute("lastElectionPart");
