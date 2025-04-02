@@ -5,6 +5,7 @@ public class MailTester {
         MailService mail = new MailService(); 
 
         mail.sendSingleEmail("victor@sannicolo.se", "1234", "Victor"); 
+        System.out.println("Skickat");
     }
     
 }

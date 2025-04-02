@@ -6,7 +6,9 @@ import spark.Request;
 import spark.Response;
 import spark.Session;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import java.util.Base64;
 
 /**
  * Service class to handle all HTTP requests/responses.
@@ -48,9 +50,9 @@ public class Service {
    * @param params - admin password
    * @return - JSON representation of election data.
    */
-  public String getElectionData(Request req, Response res, String params) {
-    determineWinners();
-    if (params.equals(password)) {
+  public String getElectionData(Request req, Response res) {
+    if (authenticateAdmin(req)) {
+      determineWinners();
       var result = gson.toJson(election.electionParts);
       res.body(result);
       res.status(200);
@@ -79,11 +81,10 @@ public class Service {
    * @param params - admin password
    * @return - Success or error message.
    */
-  public String updateElectionVoters(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updateElectionVoters(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       try {
         String requestBody = req.body();
-        System.out.println(gson.toJson(req.body()));
 
         // Parse the JSON array of voters
         TypeToken<List<Voter>> token = new TypeToken<List<Voter>>() {
@@ -132,8 +133,8 @@ public class Service {
    * @param params Admin password.
    * @return Success or error message.
    */
-  public String updateRoles(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updateRoles(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       try {
         Voter voterToBeChanged = gson.fromJson(req.body(), Voter.class);
 
@@ -189,8 +190,8 @@ public class Service {
    * @param params admin password.
    * @return success message
    */
-  public String updateElectionParts(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updateElectionParts(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       try {
         String requestBody = req.body();
         Gson gson = new Gson();
@@ -239,8 +240,8 @@ public class Service {
    * @param params admin password
    * @return success message.
    */
-  public String setCurrentPart(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String setCurrentPart(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       currentElectionPart = req.body();
       res.status(200);
       return "Success";
@@ -264,10 +265,26 @@ public class Service {
       res.status(200);
       return currentElectionPart;
     } else {
+
+      // IMPORTANT: returns whole electionPart data! REMOVE VOTE DATA!
       for (ElectionPart p : election.electionParts) {
         if (p.id == Integer.parseInt(currentElectionPart)) {
           res.status(200);
-          String data = gson.toJson(p);
+          JsonObject jsonObject = gson.toJsonTree(p).getAsJsonObject();
+          jsonObject.remove("winner");
+          jsonObject.remove("winnercount");
+          jsonObject.remove("votecount");
+          jsonObject.remove("voterSize");
+          jsonObject.remove("voteprogress");
+          jsonObject.remove("vote");
+          jsonObject.remove("decisionVotes");
+          jsonObject.remove("multipleVotes");
+          jsonObject.remove("personVotes");
+          jsonObject.remove("tieBreakerId");
+          jsonObject.remove("tieBreakerVote");
+          jsonObject.remove("tieBreakerIRVvote");
+
+          String data = jsonObject.toString();
           res.body(data);
           return data;
         }
@@ -286,55 +303,76 @@ public class Service {
    * @param res The response object.
    * @return JSON representation of data.
    */
-  public String longPollingPart(Request req, Response res, String params) {
-    System.out.println("Voter connection established, " + Thread.activeCount() + "/1000");
+  public String longPollingPart(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      System.out.println("Voter connection established, " + Thread.activeCount() + "/20000");
 
-    Session session = req.session(true);
-    String lastElectionPart = session.attribute("lastElectionPart");
+      Session session = req.session(true);
+      String lastElectionPart = session.attribute("lastElectionPart");
 
-    if (lastElectionPart == null) {
+      if (lastElectionPart == null) {
+        session.attribute("lastElectionPart", currentElectionPart);
+        lastElectionPart = currentElectionPart;
+      }
+
+      long startTime = System.currentTimeMillis();
+      long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+      while (currentElectionPart.equals(lastElectionPart)) {
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        if (elapsedTime >= timeout) {
+          // Timeout reached, end the connection
+          System.out.println("Client connection timed out.");
+          res.status(200);
+          res.body(null);
+          return null;
+        } else if (!election.containsVoterWithId(voterId)) {
+          res.status(200);
+          res.body(gson.toJson("No voter with that id"));
+          return gson.toJson("No voter with that id");
+        }
+
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+
       session.attribute("lastElectionPart", currentElectionPart);
-      lastElectionPart = currentElectionPart;
-    }
 
-    long startTime = System.currentTimeMillis();
-    long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-    while (currentElectionPart.equals(lastElectionPart)) {
-      long elapsedTime = System.currentTimeMillis() - startTime;
-      if (elapsedTime >= timeout) {
-        // Timeout reached, end the connection
-        System.out.println("Client connection timed out.");
-        res.status(200);
-        res.body(null);
-        return null;
-      } else if (!election.containsVoterWithId(params)) {
-        res.status(200);
-        res.body(gson.toJson("No voter with that id"));
-        return gson.toJson("No voter with that id");
+      // IMPORTANT: return whole electionPart data! REMOVE VOTE DATA!
+      for (ElectionPart p : election.electionParts) {
+        if (p.id == Integer.parseInt(currentElectionPart)) {
+          res.status(200);
+          JsonObject jsonObject = gson.toJsonTree(p).getAsJsonObject();
+          jsonObject.remove("winner");
+          jsonObject.remove("winnercount");
+          jsonObject.remove("votecount");
+          jsonObject.remove("voterSize");
+          jsonObject.remove("voteprogress");
+          jsonObject.remove("vote");
+          jsonObject.remove("decisionVotes");
+          jsonObject.remove("multipleVotes");
+          jsonObject.remove("personVotes");
+          jsonObject.remove("tieBreakerId");
+          jsonObject.remove("tieBreakerVote");
+          jsonObject.remove("tieBreakerIRVvote");
+          String data = jsonObject.toString();
+          res.body(data);
+          return data;
+        }
       }
 
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      res.status(204);
+      res.body(gson.toJson("Omröstning saknas"));
+      return gson.toJson("Omröstning saknas");
+    } else {
+      res.status(403);
+      res.body(null);
+      return null;
     }
-
-    session.attribute("lastElectionPart", currentElectionPart);
-
-    for (ElectionPart p : election.electionParts) {
-      if (p.id == Integer.parseInt(currentElectionPart)) {
-        res.status(200);
-        String data = gson.toJson(p);
-        res.body(data);
-        return data;
-      }
-    }
-
-    res.status(204);
-    res.body(gson.toJson("Omröstning saknas"));
-    return gson.toJson("Omröstning saknas");
   }
 
   /**
@@ -344,8 +382,8 @@ public class Service {
    * @param res The response object.
    * @return JSON representation of data.
    */
-  public String longPollingResults(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String longPollingResults(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       long startTime = System.currentTimeMillis();
       long timeout = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
       System.out.println("Admin connected, " + Thread.activeCount());
@@ -409,17 +447,33 @@ public class Service {
    * @param params admin password.
    * @return success message.
    */
-  public String validateAdmin(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String validateAdmin(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       res.status(200);
-      var result = gson.toJson("Log in successful");
+      String result = gson.toJson("Log in successful");
       res.body(result);
       return result;
     } else {
-      res.status(403);
+      res.status(401);
+      res.header("WWW-Authenticate", "Basic realm=\"Restricted\"");
       res.body("Invalid authentication");
       return gson.toJson("Invalid authentication");
     }
+  }
+
+  /**
+   * Helper method to authenticate admin using HTTP Basic Authentication.
+   * 
+   * @param req The request object.
+   * @return true if authentication is successful, false otherwise.
+   */
+  private boolean authenticateAdmin(Request req) {
+    String authorizationHeader = req.headers("Authorization");
+    if (authorizationHeader != null && authorizationHeader.startsWith("Basic ")) {
+      String credentials = new String(Base64.getDecoder().decode(authorizationHeader.substring(6)));
+      return credentials.equals(password);
+    }
+    return false;
   }
 
   /**
@@ -430,12 +484,15 @@ public class Service {
    * @param params voterId
    * @return success message.
    */
-  public String validateVoter(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) {
-        res.status(200);
-        res.body(v.name);
-        return gson.toJson(v.name);
+  public String validateVoter(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) {
+          res.status(200);
+          res.body(v.name);
+          return gson.toJson(v.name);
+        }
       }
     }
     res.status(203);
@@ -451,17 +508,20 @@ public class Service {
    * @param params voterId.
    * @return success message.
    */
-  public String castDecisionVote(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) {
-        DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
-        for (ElectionPart p : election.electionParts) {
-          // If part matches id and the voter has not yet voted.
-          if (p.id == Integer.parseInt(vote.electionPart)) {
-            p.addDecisionVote(vote, election.voters.size());
-            res.status(200);
-            res.body("Vote has been cast");
-            return gson.toJson("Vote has been cast");
+  public String castDecisionVote(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) {
+          DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
+          for (ElectionPart p : election.electionParts) {
+            // If part matches id and the voter has not yet voted.
+            if (p.id == Integer.parseInt(vote.electionPart)) {
+              p.addDecisionVote(vote, election.voters.size());
+              res.status(200);
+              res.body("Vote has been cast");
+              return gson.toJson("Vote has been cast");
+            }
           }
         }
       }
@@ -479,17 +539,20 @@ public class Service {
    * @param params voterId.
    * @return success message.
    */
-  public String castMultipleVote(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) {
-        DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
-        for (ElectionPart p : election.electionParts) {
-          // If part matches id and the voter has not yet voted.
-          if (p.id == Integer.parseInt(vote.electionPart)) {
-            p.addMultipleVote(vote, election.voters.size());
-            res.status(200);
-            res.body("Vote has been cast");
-            return gson.toJson("Vote has been cast");
+  public String castMultipleVote(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) {
+          DecisionVote vote = gson.fromJson(req.body(), DecisionVote.class);
+          for (ElectionPart p : election.electionParts) {
+            // If part matches id and the voter has not yet voted.
+            if (p.id == Integer.parseInt(vote.electionPart)) {
+              p.addMultipleVote(vote, election.voters.size());
+              res.status(200);
+              res.body("Vote has been cast");
+              return gson.toJson("Vote has been cast");
+            }
           }
         }
       }
@@ -502,22 +565,24 @@ public class Service {
   /**
    * Casts vote for person election.
    * 
-   * @param req    The request object.
-   * @param res    The response object.
-   * @param params voterId.
+   * @param req The request object.
+   * @param res The response object.
    * @return success message.
    */
-  public String castPersonVote(Request req, Response res, String params) {
-    for (Voter v : election.voters) {
-      if (v.voterId.equals(params)) { // Voter exists
-        IRVvote vote = gson.fromJson(req.body(), IRVvote.class);
-        for (ElectionPart p : election.electionParts) {
-          // If part matches id and the voter has not yet voted.
-          if (p.id == Integer.parseInt(vote.electionPart)) {
-            p.addPersonVote(vote, election.voters.size());
-            res.status(200);
-            res.body("Vote has been cast");
-            return gson.toJson("Vote has been cast");
+  public String castPersonVote(Request req, Response res) {
+    String voterId = req.headers("voterId");
+    if (voterId != null) {
+      for (Voter v : election.voters) {
+        if (v.voterId.equals(voterId)) { // Voter exists
+          IRVvote vote = gson.fromJson(req.body(), IRVvote.class);
+          for (ElectionPart p : election.electionParts) {
+            // If part matches id and the voter has not yet voted.
+            if (p.id == Integer.parseInt(vote.electionPart)) {
+              p.addPersonVote(vote, election.voters.size());
+              res.status(200);
+              res.body("Vote has been cast");
+              return gson.toJson("Vote has been cast");
+            }
           }
         }
       }
@@ -535,8 +600,8 @@ public class Service {
    * @param params admin password.
    * @return success message.
    */
-  public String addSingleVoter(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String addSingleVoter(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       Voter newVoter = gson.fromJson(req.body(), Voter.class);
       for (Voter v : election.voters) {
         if (v.voterId.equals(newVoter.voterId)) {
@@ -564,8 +629,8 @@ public class Service {
    * @param params admin password.
    * @return success message.
    */
-  public String removeSingleVoter(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String removeSingleVoter(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       Voter newVoter = gson.fromJson(req.body(), Voter.class);
       for (Voter v : election.voters) {
         if (v.voterId.equals(newVoter.voterId)) {
@@ -593,8 +658,8 @@ public class Service {
    * @param params admin password.
    * @return Amount of emails sent.
    */
-  public String sendEmails(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String sendEmails(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       mail.sendEmails(election.voters);
       res.body(gson.toJson(mail.getEmailSentCount()));
       res.status(200);
@@ -615,8 +680,8 @@ public class Service {
    * @param params admin password
    * @return success message.
    */
-  public String sendSingleEmail(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String sendSingleEmail(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       String email = req.body();
       Boolean foundVoter = false;
       for (Voter voter : election.voters) {
@@ -646,8 +711,8 @@ public class Service {
    * @param params current admin password.
    * @return success message.
    */
-  public String updatePassword(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String updatePassword(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       String newPassword = req.body();
       password = newPassword;
       mail.resetPasswordEmail(newPassword);
@@ -662,14 +727,15 @@ public class Service {
   }
 
   /**
-   * Removes all voters, including styr and tiebreaker. 
+   * Removes all voters, including styr and tiebreaker.
+   * 
    * @param req
    * @param res
    * @param params
    * @return
    */
-  public String removeAllVoters(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String removeAllVoters(Request req, Response res) {
+    if (authenticateAdmin(req)) {
       election.voters = new ArrayList<>();
       res.body("Voters removed");
       res.status(200);
@@ -682,14 +748,16 @@ public class Service {
   }
 
   /**
-   * Returns all voters. 
+   * Returns all voters.
+   * 
    * @param req
    * @param res
    * @param params
    * @return
    */
-  public String getAllVoters(Request req, Response res, String params) {
-    if (params.equals(password)) {
+  public String getAllVoters(Request req, Response res) {
+    validateAdmin(req, res); // Add this line to validate admin before accessing voters
+    if (authenticateAdmin(req)) {
       res.status(200);
       return gson.toJson(election.voters);
     } else {

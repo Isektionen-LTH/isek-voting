@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         port(8080);
         Service s = new Service();
-        spark.Spark.threadPool(1000);
+        spark.Spark.threadPool(20000);
 
 
         before(
@@ -45,45 +45,45 @@ public class Main {
         //All endpoints explained in service class. 
         get("/health", (req, res) -> s.health(req, res));
 
-        get("/validate-voter/:voterId", (req, res) -> s.validateVoter(req, res, req.params(":voterId")));
+        get("/validate-voter", (req, res) -> s.validateVoter(req, res));
 
-        get("/validate-admin/:password", (req, res) -> s.validateAdmin(req, res, req.params(":password")));
+        get("/validate-admin", (req, res) -> s.validateAdmin(req, res));
 
-        get("/elections/getdata/:password", (req, res) -> s.getElectionData(req, res, req.params(":password")));
+        get("/elections/getdata", (req, res) -> s.getElectionData(req, res));
 
-        post("/elections/update-voters/:password", (req, res) -> s.updateElectionVoters(req, res, req.params(":password")));
+        post("/elections/update-voters", (req, res) -> s.updateElectionVoters(req, res));
 
-        post("/elections/update-roles/:password", (req, res) -> s.updateRoles(req, res, req.params(":password")));
+        post("/elections/update-roles", (req, res) -> s.updateRoles(req, res));
 
-        post("/elections/update-electionparts/:password", (req, res) -> s.updateElectionParts(req, res, req.params(":password"))); 
+        post("/elections/update-electionparts", (req, res) -> s.updateElectionParts(req, res)); 
         
-        post("/set-current-part/:password", (req, res) -> s.setCurrentPart(req, res, req.params(":password"))); 
+        post("/set-current-part", (req, res) -> s.setCurrentPart(req, res)); 
 
         get("/get-current-part", (req, res) -> s.getCurrentPart(req, res));
 
-        post("/cast-decision-vote/:voterId", (req, res) -> s.castDecisionVote(req, res, req.params(":voterId")));
+        post("/cast-decision-vote", (req, res) -> s.castDecisionVote(req, res));
 
-        post("/cast-person-vote/:voterId", (req, res) -> s.castPersonVote(req, res, req.params(":voterId")));
+        post("/cast-person-vote", (req, res) -> s.castPersonVote(req, res));
 
-        post("/cast-multiple-vote/:voterId", (req, res) -> s.castMultipleVote(req, res, req.params(":voterId")));
+        post("/cast-multiple-vote", (req, res) -> s.castMultipleVote(req, res));
 
-        post("/elections/add-voter/:password", (req, res) -> s.addSingleVoter(req, res, req.params(":password")));
+        post("/elections/add-voter", (req, res) -> s.addSingleVoter(req, res));
 
-        post("/elections/remove-voter/:password", (req, res) -> s.removeSingleVoter(req, res, req.params(":password")));
+        post("/elections/remove-voter", (req, res) -> s.removeSingleVoter(req, res));
 
-        get("/send-emails/:password", (req, res) -> s.sendEmails(req, res, req.params(":password")));
+        get("/send-emails", (req, res) -> s.sendEmails(req, res));
 
-        post("/send-single-email/:password", (req, res) -> s.sendSingleEmail(req, res, req.params(":password")));
+        post("/send-single-email", (req, res) -> s.sendSingleEmail(req, res));
 
-        post("/update-password/:password", (req, res) -> s.updatePassword(req, res, req.params(":password")));
+        post("/update-password", (req, res) -> s.updatePassword(req, res));
 
-        get("/long-polling-part/:voterId", (req, res) -> s.longPollingPart(req, res, req.params(":voterId"))); 
+        get("/long-polling-part", (req, res) -> s.longPollingPart(req, res)); 
 
-        get("/long-polling-results/:password", (req, res) -> s.longPollingResults(req, res, req.params(":password"))); 
+        get("/long-polling-results", (req, res) -> s.longPollingResults(req, res)); 
         
-        get("/remove-all-voters/:password", (req, res) -> s.removeAllVoters(req, res, req.params(":password")));
+        get("/remove-all-voters", (req, res) -> s.removeAllVoters(req, res));
 
-        get("/get-all-voters/:password", (req, res) -> s.getAllVoters(req, res, req.params(":password")));
+        get("/get-all-voters/", (req, res) -> s.getAllVoters(req, res));
 
     }
 }

@@ -152,11 +152,12 @@ function CreateElection(props) {
     };
 
     function updateCurrentId(id) {
-        let url = host + "/set-current-part/" + password;
+        let url = host + "/set-current-part";
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: id
         }).then(response => {
@@ -183,18 +184,26 @@ function CreateElection(props) {
     const startElection = (event) => {
         if (!electionRunning) {
             if (currentId === 0 || currentId === undefined || currentId > tableRows.length) {
-                setCurrentId(1);
-                updateCurrentId(1);
+                setSeverity('error');
+                setText("Ingen omröstning vald. Välj en omröstning att starta.");
+                setOpen(true);
             } else {
                 updateCurrentId(currentId);
+                setRunning(electionRunning => !electionRunning);
             }
         } else {
             updateCurrentId(0);
+            setRunning(electionRunning => !electionRunning);
         }
-        setRunning(electionRunning => !electionRunning);
     };
 
-    function nextElection(event) {
+    function setSelectedElection(id) {
+        if (electionRunning) {
+            updateCurrentId(id);
+        }
+    }
+
+    /* function nextElection(event) {
         if (currentId === undefined) {
             setCurrentId(1);
         }
@@ -215,14 +224,15 @@ function CreateElection(props) {
                 updateCurrentId(id);
             }
         }
-    }
+    } */
 
     function updateVoters(parsedData) {
-        let url = host + "/elections/update-voters/" + password;
+        let url = host + "/elections/update-voters";
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: parsedData
         }).then(response => {
@@ -242,11 +252,12 @@ function CreateElection(props) {
 
     function updateVoterRoles(voterId, newRole) {
         let data = { "voterId": voterId, "role": newRole };
-        let url = host + "/elections/update-roles/" + password;
+        let url = host + "/elections/update-roles";
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: JSON.stringify(data)
         }).then(response => {
@@ -271,11 +282,12 @@ function CreateElection(props) {
         } else {
             setAddVoterDialogOpen(false);
 
-            let url = host + "/elections/add-voter/" + password;
+            let url = host + "/elections/add-voter";
             fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(password)
                 },
                 body: JSON.stringify({ "name": newVoterName, "voterId": newVoterId, "email": newVoterEmail })
             }).then(response => {
@@ -305,11 +317,12 @@ function CreateElection(props) {
     function removeVoter(voterId) {
         return new Promise((resolve, reject) => {
             if (voterId) {
-                let url = host + "/elections/remove-voter/" + password;
+                let url = host + "/elections/remove-voter";
                 fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa(password)
                     },
                     body: JSON.stringify({ "voterId": voterId })
                 })
@@ -348,9 +361,12 @@ function CreateElection(props) {
     }
 
     function sendAllEmails() {
-        let url = host + '/send-emails/' + password;
+        let url = host + '/send-emails';
         setShowLoading(true);
-        fetch(url)
+        let headers = {
+            'Authorization': 'Basic ' + btoa(password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 if (response.ok) {
                     setSendAllRemailsDialogOpen(false);
@@ -377,13 +393,14 @@ function CreateElection(props) {
     }
 
     function sendSingleEmail() {
-        let url = host + "/send-single-email/" + password;
+        let url = host + "/send-single-email";
         setShowLoading(true);
 
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: email
         })
@@ -406,13 +423,14 @@ function CreateElection(props) {
     }
 
     function sendNewVoterEmail(newEmail) {
-        let url = host + "/send-single-email/" + password;
+        let url = host + "/send-single-email";
         setShowLoading(true);
 
         fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(password)
             },
             body: newEmail
         })
@@ -438,11 +456,12 @@ function CreateElection(props) {
         setShowLoading(true);
         if (oldPassword === password) {
             setShowWrongPassword(false);
-            let url = host + "/update-password/" + password;
+            let url = host + "/update-password";
             fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(password)
                 },
                 body: newPassword
             }).then(response => {
@@ -472,8 +491,11 @@ function CreateElection(props) {
     }
 
     function removeAllVoters() {
-        let url = host + '/remove-all-voters/' + password;
-        fetch(url)
+        let url = host + '/remove-all-voters';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 if (response.ok) {
                     setRemoveAllDialogOpen(false);
@@ -493,8 +515,11 @@ function CreateElection(props) {
     }
 
     function getAllVoters() {
-        let url = host + '/get-all-voters/' + password;
-        fetch(url)
+        let url = host + '/get-all-voters/';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(password) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 return response.json();
             }).then((data) => {
@@ -592,18 +617,6 @@ function CreateElection(props) {
                 aria-describedby="scroll-dialog-description"
             >
                 <div style={{ position: 'relative' }}>
-                    {/* <QuestionMarkIcon
-                        onClick={() => alert("\bInstruktioner: \n\nHär ser du samtliga aktiva valkoder. Du kan lägga till valkoder, ta bort eller ändra roll för deltagare. \n\nUnder \"Roll\" ser du den nuvarande rollen. För att ändra klickar du på knappen, vilket växlar mellan rollerna. Endast en kan vara utslag (mötesordförande) åt taget.")}
-                        style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '50px',
-                            cursor: 'pointer',
-                            fontSize: '20px',
-                            marginTop: '6px',
-
-                        }}
-                    /> */}
                     <CloseIcon
                         onClick={() => setShowAllVotersDialogOpen(false)}
                         style={{
@@ -692,6 +705,11 @@ function CreateElection(props) {
                                 <div>Inga aktiva valkoder</div>
                             )}
 
+                            {allVoters && (
+                                <div style={{ gridColumn: '1 / span 5', textAlign: 'left', fontWeight: 'bold', marginTop: '20px' }}>
+                                    Totalt antal valkoder: {allVoters.length || "0"}
+                                </div>
+                            )}
 
                         </DialogContentText>
                     </DialogContent>
@@ -781,16 +799,14 @@ function CreateElection(props) {
             </Dialog>
             <div className='frame'>
                 <h1 style={{ color: '#70002D' }}>Admin</h1>
-                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', alignItems: 'center' }}>
-                    <h5 style={{ marginRight: '10px', marginLeft: '55px' }}>Ladda upp gästlista</h5>
-                    <FileUploadComponent onFileUpload={handleFileUpload} />
-                </div>
+                <FileUploadComponent onFileUpload={handleFileUpload} />
                 {electionRunning === false && <Button variant="contained" className='startElection' onClick={startElection}>Starta röstning</Button>}
                 {electionRunning === true && <Button variant="contained" className='endElection' onClick={startElection}>Stoppa röstning</Button>}
-                {<h3>Välj aktiv omröstning:</h3>}
+                <div style={{ marginBottom: '20px', fontSize: '12px' }}>Vald omröstning: {currentId || 'Ingen vald'} </div>
+                {/* {<h3>Välj aktiv omröstning:</h3>}
                 {<Button variant="contained" className='nextElection' onClick={nextElection}> Nästa omröstning</Button>}
                 {<Button variant="contained" className='previousElection' onClick={previousElection}>Tillbaka</Button>}
-
+ */}
                 <Snackbar open={open} autoHideDuration={5000} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'left', }}>
                     <Alert onClose={handleClose} severity={severity} sx={{ width: '100%' }}>
                         {snackText}
@@ -798,7 +814,7 @@ function CreateElection(props) {
                 </Snackbar>
 
             </div>
-            <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} password={password} />
+            <ElectionTable rows={tableRows} updateParentRows={setTableRows} currentId={currentId || 0} setCurrentId={setCurrentId} password={password} setSelectedElection={setSelectedElection} electionRunning={electionRunning} />
         </div>
     );
 };

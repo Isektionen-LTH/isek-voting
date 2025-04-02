@@ -11,8 +11,11 @@ function AdminLogin() {
 
     function handleSubmit(event) {
         event.preventDefault();
-        let url = 'https://vote-server.isek.se/validate-admin/' + fieldInput;
-        fetch(url)
+        let url = 'https://vote-server.isek.se/validate-admin';
+        let headers = {
+            'Authorization': 'Basic ' + btoa(fieldInput) // Use btoa to encode the password
+        };
+        fetch(url, { headers })
             .then((response) => {
                 if (response.ok) {
                     setLoggedIn(true);

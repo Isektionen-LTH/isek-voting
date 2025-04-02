@@ -33,16 +33,17 @@
 
 .startElection {
     margin-top: 10px !important;
-    margin-bottom: 0px !important;
+    margin-bottom: 10px !important;
     width: 45%;
     background-color: green !important;
 }
 
 .endElection {
     margin-top: 10px !important;
-    margin-bottom: 0px !important;
+    margin-bottom: 10px !important;
     width: 45%;
     background-color: #70002D !important;
+
 }
 
 .nextElection {
