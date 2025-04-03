@@ -28,12 +28,13 @@ Servern ligger och kör i en dockercontainer på DigitalOcean : vote-server.isek
 Se One.com för DNS hantering. 
 
 För att köra lokalt/utveckla: 
-    Server-kommandon i terminalen: 
+
+    Server: 
     - cd voting-server: gå in i rätt directory 
     - gradle build: "updatera" gradle filen, kör efter ändringar. 
     - gradle run: "Starta" servern lokalt. Körs på localhost:8080
 
-    Web-kommandon i terminalen: 
+    Web: 
     - cd web-voting
     - npm start: startar React lokalt, öppna en browser och nå systemet på localhost:3000. 
     - npm run build: bygger en version redo att publiseras (firebase). 
